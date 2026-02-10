@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+.env
+.git
+*.egg-info
+notebook/
+dockers/
+example_data/
+resume_token.json
+.vscode/

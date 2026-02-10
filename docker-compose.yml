@@ -1,0 +1,130 @@
+version: "3.8"
+
+services:
+  # ---- Milvus stack ----
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.18
+    container_name: milvus-etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - etcd-data:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - app-net
+
+  minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - app-net
+
+  milvus:
+    image: milvusdb/milvus:v2.5.4
+    container_name: milvus-standalone
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - milvus-data:/var/lib/milvus
+    depends_on:
+      etcd:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - app-net
+
+  # ---- Search API ----
+  search-api:
+    build: .
+    container_name: search-api
+    ports:
+      - "8000:8000"
+    environment:
+      MS_BACKEND: milvus
+      MS_MILVUS_URI: http://milvus:19530
+      MS_MILVUS_COLLECTION_NAME: scenes
+      MS_EMBEDDING_DIMENSION: "1024"
+      MS_EMBEDDING_MODEL_NAME: BAAI/bge-m3
+      MS_EMBEDDING_DEVICE: cpu
+      MS_MONGO_URI: mongodb://host.docker.internal:27017/?replicaSet=rs0
+      MS_MONGO_DB: Metadata_Enrichment
+      MS_MONGO_COLLECTION: video_queue
+    depends_on:
+      milvus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-net
+
+  # ---- MongoDB Watcher ----
+  mongo-watcher:
+    build: .
+    container_name: mongo-watcher
+    command: ["python", "-m", "scripts.mongo_watcher", "--full-sync"]
+    environment:
+      MS_BACKEND: milvus
+      MS_MILVUS_URI: http://milvus:19530
+      MS_MILVUS_COLLECTION_NAME: scenes
+      MS_EMBEDDING_DIMENSION: "1024"
+      MS_EMBEDDING_MODEL_NAME: BAAI/bge-m3
+      MS_EMBEDDING_DEVICE: cpu
+      MS_MONGO_URI: mongodb://host.docker.internal:27017/?replicaSet=rs0
+      MS_MONGO_DB: Metadata_Enrichment
+      MS_MONGO_COLLECTION: video_queue
+      MS_MONGO_RESUME_TOKEN_PATH: /data/resume_token.json
+    volumes:
+      - watcher-data:/data
+    depends_on:
+      milvus:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-net
+
+volumes:
+  etcd-data:
+  minio-data:
+  milvus-data:
+  watcher-data:
+
+networks:
+  app-net:
