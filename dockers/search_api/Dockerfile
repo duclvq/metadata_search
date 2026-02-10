@@ -22,14 +22,9 @@ WORKDIR /app
 COPY environment.yml .
 RUN conda env create -f environment.yml && conda clean -afy
 
-# App source (copied by build script)
-COPY api/ ./api/
-COPY src/ ./src/
-COPY scripts/ ./scripts/
+
 
 SHELL ["bash", "-c"]
 
-EXPOSE 8003
 
 ENTRYPOINT ["bash", "-c", "source /opt/conda/etc/profile.d/conda.sh && conda activate md_search && exec \"$@\"", "--"]
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8003"]
