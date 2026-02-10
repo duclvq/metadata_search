@@ -1,0 +1,161 @@
+[
+  {
+    "unique_id": "79b7503e-f36b-1410-819a-009c3de8f61f",
+    "title": "Đại hội Đảng lần thứ 14 - Phiên khai mạc",
+    "enriched_data": {
+      "audio": {
+        "transcription": "0.0-7.88: Toàn đảng, toàn dân, toàn quân ta là giống hóc mở ra chặng đường mới...",
+        "summary": "Đại hội 14 của Đảng diễn ra trong thời điểm lịch sử quan trọng. Mục tiêu đưa đất nước phát triển bền vững, hội nhập quốc tế sâu rộng.",
+        "entity": "[{\"name\": \"Bắc Hồ\", \"type\": \"PERSON\"}, {\"name\": \"Đảng Cộng sản Việt Nam\", \"type\": \"ORG\"}]"
+      },
+      "scene_list": [
+        {
+          "scene_id": "89823b8d-0c67-4ca7-aa47-a5847eb87173",
+          "start": "00:00:00.000",
+          "end": "00:02:41.560",
+          "scene_captioning": "Người đàn ông phát biểu trong phòng hội nghị lớn. Tất cả phải đối mặt với những thách thức mới trong bối cảnh toàn cầu hóa.",
+          "audio_summary": "Phát biểu khai mạc Đại hội Đảng lần thứ 14, nhấn mạnh vai trò lãnh đạo của Đảng trong thời kỳ mới.",
+          "category": "chính trị",
+          "created_date": "2025-01-15",
+          "author": "VTV1"
+        },
+        {
+          "scene_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+          "start": "00:02:41.560",
+          "end": "00:05:30.000",
+          "scene_captioning": "Toàn cảnh hội trường với hàng nghìn đại biểu ngồi chỉnh tề, cờ đỏ sao vàng trang trí khắp sân khấu.",
+          "audio_summary": "Báo cáo về thành tựu phát triển kinh tế xã hội giai đoạn 2021-2025, GDP tăng trưởng bình quân 6.5% mỗi năm.",
+          "category": "chính trị",
+          "created_date": "2025-01-15",
+          "author": "VTV1"
+        },
+        {
+          "scene_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+          "start": "00:05:30.000",
+          "end": "00:08:15.200",
+          "scene_captioning": "Các đại biểu vỗ tay nhiệt liệt sau bài phát biểu. Camera quay cận cảnh các lãnh đạo cấp cao trên hàng ghế đầu.",
+          "audio_summary": "Đề xuất mục tiêu trở thành nước có thu nhập trung bình cao vào năm 2030 và nước phát triển vào năm 2045.",
+          "category": "chính trị",
+          "created_date": "2025-01-15",
+          "author": "VTV1"
+        }
+      ],
+      "faces": [
+        {"face_id": "49613065-bebc-44eb-8d25-8256b5b7c419", "name": "Tô Lâm"},
+        {"face_id": "58724176-cdcd-55fc-9e36-9367c6c8d520", "name": "Phạm Minh Chính"}
+      ]
+    },
+    "video_duration_sec": 495.2,
+    "video_created_at": "2025-01-15T08:00:00",
+    "video_tags": ["đại hội đảng", "chính trị", "thời sự"]
+  },
+  {
+    "unique_id": "a3d8f92c-bb14-4e7a-9c01-123456789abc",
+    "title": "Phóng sự: Chuyển đổi số trong giáo dục Việt Nam",
+    "enriched_data": {
+      "audio": {
+        "transcription": "0.0-5.2: Chuyển đổi số đang thay đổi cách chúng ta dạy và học...",
+        "summary": "Phóng sự về quá trình chuyển đổi số trong hệ thống giáo dục Việt Nam, từ trường học đến đại học, với các mô hình học trực tuyến và AI hỗ trợ giảng dạy.",
+        "entity": "[{\"name\": \"Bộ Giáo dục\", \"type\": \"ORG\"}, {\"name\": \"Đại học Bách khoa Hà Nội\", \"type\": \"ORG\"}]"
+      },
+      "scene_list": [
+        {
+          "scene_id": "c4d5e6f7-a8b9-0123-cdef-234567890abc",
+          "start": "00:00:00.000",
+          "end": "00:01:45.300",
+          "scene_captioning": "Học sinh ngồi trong lớp học hiện đại với máy tính bảng trên bàn. Giáo viên đứng trước màn hình tương tác cỡ lớn.",
+          "audio_summary": "Giới thiệu về chương trình thí điểm lớp học thông minh tại 100 trường trên toàn quốc.",
+          "category": "giáo dục",
+          "created_date": "2025-03-20",
+          "author": "VTV2"
+        },
+        {
+          "scene_id": "d5e6f7a8-b9c0-1234-defa-345678901bcd",
+          "start": "00:01:45.300",
+          "end": "00:04:20.000",
+          "scene_captioning": "Phòng thí nghiệm robot tại trường đại học. Sinh viên đang lập trình và điều khiển cánh tay robot công nghiệp.",
+          "audio_summary": "Đại học Bách khoa Hà Nội triển khai chương trình đào tạo AI và robot, thu hút hơn 2000 sinh viên đăng ký mỗi năm.",
+          "category": "giáo dục",
+          "created_date": "2025-03-20",
+          "author": "VTV2"
+        },
+        {
+          "scene_id": "e6f7a8b9-c0d1-2345-efab-456789012cde",
+          "start": "00:04:20.000",
+          "end": "00:06:50.500",
+          "scene_captioning": "Phỏng vấn giáo viên vùng cao đang sử dụng điện thoại để dạy trực tuyến. Cảnh núi rừng và trường học nhỏ ở vùng sâu.",
+          "audio_summary": "Thách thức của chuyển đổi số tại vùng sâu vùng xa: thiếu hạ tầng internet, thiếu thiết bị, giáo viên cần được đào tạo thêm.",
+          "category": "giáo dục",
+          "created_date": "2025-03-20",
+          "author": "Báo Tuổi Trẻ"
+        },
+        {
+          "scene_id": "f7a8b9c0-d1e2-3456-fabc-567890123def",
+          "start": "00:06:50.500",
+          "end": "00:09:10.000",
+          "scene_captioning": "Hội thảo quốc tế về EdTech tại Hà Nội. Các chuyên gia nước ngoài trình bày trên sân khấu với slide tiếng Anh.",
+          "audio_summary": "Việt Nam đặt mục tiêu 100% trường học kết nối internet tốc độ cao vào năm 2028, đầu tư 5000 tỷ đồng cho chuyển đổi số giáo dục.",
+          "category": "công nghệ",
+          "created_date": "2025-03-21",
+          "author": "VTV2"
+        }
+      ],
+      "faces": [
+        {"face_id": "11111111-aaaa-bbbb-cccc-dddddddddddd", "name": "Nguyễn Văn A"},
+        {"face_id": "22222222-aaaa-bbbb-cccc-dddddddddddd", "name": "Trần Thị B"}
+      ]
+    },
+    "video_duration_sec": 550.0,
+    "video_created_at": "2025-03-20T14:30:00",
+    "video_tags": ["giáo dục", "chuyển đổi số", "công nghệ", "AI"]
+  },
+  {
+    "unique_id": "f1e2d3c4-b5a6-9780-fedc-ba9876543210",
+    "title": "Thời sự: Bão số 5 đổ bộ miền Trung",
+    "enriched_data": {
+      "audio": {
+        "transcription": "0.0-4.5: Bão số 5 với sức gió giật cấp 14 đã đổ bộ vào bờ biển miền Trung...",
+        "summary": "Bão số 5 đổ bộ miền Trung gây thiệt hại nặng nề. Lực lượng cứu hộ khẩn trương di dời người dân. Chính phủ chỉ đạo ứng phó khẩn cấp.",
+        "entity": "[{\"name\": \"Đà Nẵng\", \"type\": \"LOCATION\"}, {\"name\": \"Quảng Nam\", \"type\": \"LOCATION\"}]"
+      },
+      "scene_list": [
+        {
+          "scene_id": "11aa22bb-33cc-44dd-55ee-66ff77008899",
+          "start": "00:00:00.000",
+          "end": "00:01:30.000",
+          "scene_captioning": "Bản đồ vệ tinh hiển thị đường đi của bão. Phóng viên đứng trước biển với gió lớn, mưa tạt ngang.",
+          "audio_summary": "Bão số 5 đổ bộ vào Đà Nẵng - Quảng Nam với sức gió giật cấp 14, gây mưa lớn 300-500mm.",
+          "category": "thời sự",
+          "created_date": "2025-09-10",
+          "author": "VTV1"
+        },
+        {
+          "scene_id": "22bb33cc-44dd-55ee-66ff-778899001122",
+          "start": "00:01:30.000",
+          "end": "00:03:45.800",
+          "scene_captioning": "Cảnh ngập lụt tại khu dân cư, nước dâng đến nửa nhà. Bộ đội dùng thuyền cao su di chuyển người dân.",
+          "audio_summary": "Hơn 50,000 hộ dân phải di dời khẩn cấp. Quân đội và công an huy động 3000 người tham gia cứu hộ.",
+          "category": "thời sự",
+          "created_date": "2025-09-10",
+          "author": "VTV1"
+        },
+        {
+          "scene_id": "33cc44dd-55ee-66ff-7788-990011223344",
+          "start": "00:03:45.800",
+          "end": "00:05:20.000",
+          "scene_captioning": "Thủ tướng chủ trì họp khẩn tại trung tâm chỉ huy phòng chống thiên tai. Màn hình lớn hiển thị bản đồ thiệt hại.",
+          "audio_summary": "Thủ tướng chỉ đạo xuất 1000 tỷ đồng từ quỹ dự phòng để hỗ trợ khẩn cấp, yêu cầu không để người dân thiếu đói.",
+          "category": "chính trị",
+          "created_date": "2025-09-10",
+          "author": "Báo Tuổi Trẻ"
+        }
+      ],
+      "faces": [
+        {"face_id": "aabb1122-ccdd-3344-eeff-556677889900", "name": "Phạm Minh Chính"}
+      ]
+    },
+    "video_duration_sec": 320.0,
+    "video_created_at": "2025-09-10T19:00:00",
+    "video_tags": ["thời sự", "bão lũ", "miền trung", "cứu hộ"]
+  }
+]

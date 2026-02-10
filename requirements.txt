@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pymilvus[model]
+pydantic-settings
+pymongo
+bson

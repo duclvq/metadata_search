@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  opensearch:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-node
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=YourStrongPassword123!
+      - "OPENSEARCH_JAVA_OPTS=-Xms5g -Xmx5g"
+      # - plugins.ml_commons.enabled=true
+      - plugins.security.disabled=true
+    ports:
+      - "9200:9200" # REST API
+      - "9600:9600" # Performance Analyzer
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    restart: unless-stopped
+    networks:
+      - opensearch-net
+
+  opensearch-dashboards:
+    image: public.ecr.aws/opensearchproject/opensearch-dashboards:3
+    container_name: opensearch-dashboards
+    ports:
+      - "5601:5601" # Cổng truy cập giao diện web
+    environment:
+      # Kết nối tới service "opensearch" ở trên qua giao thức https
+      - 'OPENSEARCH_HOSTS=["http://opensearch:9200"]'
+      - "OPENSEARCH_USERNAME=admin"
+      - "OPENSEARCH_PASSWORD=YourStrongPassword123!"
+    networks:
+      - opensearch-net
+    depends_on:
+      - opensearch
+    restart: unless-stopped
+
+volumes:
+  opensearch-data:
+
+networks:
+  opensearch-net:

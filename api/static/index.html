@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metadata Search</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2e3345;
+    --text: #e1e4ed;
+    --text2: #8b90a0;
+    --accent: #6c7bf7;
+    --accent-hover: #8490ff;
+    --tag-bg: #2a2d4a;
+    --green: #4ade80;
+    --orange: #fb923c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: .25rem;
+  }
+
+  header p {
+    color: var(--text2);
+    font-size: .85rem;
+  }
+
+  /* Search Section */
+  .search-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .search-row {
+    display: flex;
+    gap: .75rem;
+    margin-bottom: 1rem;
+  }
+
+  .search-row input[type="text"] {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem 1rem;
+    color: var(--text);
+    font-size: .95rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .search-row input[type="text"]:focus {
+    border-color: var(--accent);
+  }
+
+  .search-row button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: .65rem 1.5rem;
+    font-size: .95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s;
+    white-space: nowrap;
+  }
+
+  .search-row button:hover { background: var(--accent-hover); }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .control-group label {
+    font-size: .8rem;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+
+  .control-group select,
+  .control-group input[type="number"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .4rem .6rem;
+    color: var(--text);
+    font-size: .85rem;
+    outline: none;
+  }
+
+  .control-group input[type="number"] { width: 60px; }
+  .control-group select { min-width: 100px; }
+
+  /* Toggle switch */
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-left: auto;
+  }
+
+  .toggle label { font-size: .8rem; color: var(--text2); }
+
+  .switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+  }
+
+  .switch input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute;
+    inset: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+
+  .slider::before {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 2px;
+    top: 2px;
+    background: var(--text2);
+    border-radius: 50%;
+    transition: transform .2s, background .2s;
+  }
+
+  .switch input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+  .switch input:checked + .slider::before { transform: translateX(16px); background: #fff; }
+
+  /* Facets panel */
+  .facets-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .facets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .75rem;
+  }
+
+  .facets-header h3 {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .facets-clear {
+    font-size: .78rem;
+    color: var(--accent);
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: .2rem .5rem;
+    border-radius: 4px;
+    transition: background .2s;
+  }
+
+  .facets-clear:hover { background: var(--tag-bg); }
+
+  .facet-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  .facet-group {
+    min-width: 150px;
+  }
+
+  .facet-group-title {
+    font-size: .78rem;
+    color: var(--text2);
+    margin-bottom: .4rem;
+    font-weight: 500;
+  }
+
+  .facet-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+
+  .facet-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .25rem .6rem;
+    font-size: .78rem;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+  }
+
+  .facet-chip:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .facet-chip.active {
+    background: var(--tag-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .facet-chip .facet-count {
+    background: var(--border);
+    padding: .05rem .35rem;
+    border-radius: 4px;
+    font-size: .7rem;
+    font-weight: 600;
+  }
+
+  .facet-chip.active .facet-count {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin-top: .75rem;
+    padding-top: .75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .active-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 5px;
+    padding: .2rem .5rem;
+    font-size: .75rem;
+    font-weight: 500;
+  }
+
+  .active-filter-tag .remove-filter {
+    cursor: pointer;
+    font-weight: 700;
+    margin-left: .15rem;
+    opacity: .8;
+  }
+
+  .active-filter-tag .remove-filter:hover { opacity: 1; }
+
+  /* Filter bar */
+  .filter-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .filter-bar .result-count {
+    font-size: .85rem;
+    color: var(--text2);
+    margin-right: auto;
+  }
+
+  .filter-bar .result-count strong {
+    color: var(--text);
+  }
+
+  /* Results */
+  .results { display: flex; flex-direction: column; gap: .75rem; }
+
+  .scene-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    transition: border-color .2s;
+  }
+
+  .scene-card:hover { border-color: var(--accent); }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: .5rem;
+    gap: 1rem;
+  }
+
+  .card-header .video-title {
+    font-weight: 600;
+    font-size: .95rem;
+  }
+
+  .card-header .score {
+    background: var(--tag-bg);
+    color: var(--accent);
+    font-size: .75rem;
+    font-weight: 600;
+    padding: .2rem .6rem;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .scene-desc {
+    color: var(--text2);
+    font-size: .88rem;
+    line-height: 1.5;
+    margin-bottom: .6rem;
+  }
+
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+    font-size: .78rem;
+    color: var(--text2);
+  }
+
+  .meta-tag {
+    background: var(--tag-bg);
+    padding: .15rem .5rem;
+    border-radius: 4px;
+  }
+
+  .meta-time { color: var(--green); }
+  .meta-date { color: var(--orange); }
+  .meta-sep { color: var(--border); }
+  .meta-category { color: var(--accent); font-weight: 500; }
+  .meta-author { color: #c084fc; }
+
+  /* States */
+  .empty-state {
+    text-align: center;
+    color: var(--text2);
+    padding: 3rem 1rem;
+    font-size: .9rem;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text2);
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    margin-bottom: .5rem;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-msg {
+    background: #2d1b1b;
+    border: 1px solid #5c2a2a;
+    color: #f87171;
+    padding: .75rem 1rem;
+    border-radius: 8px;
+    font-size: .85rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 600px) {
+    .search-row { flex-direction: column; }
+    .controls { flex-direction: column; align-items: flex-start; }
+    .toggle { margin-left: 0; }
+    .filter-bar { flex-direction: column; align-items: flex-start; }
+    .facet-groups { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Metadata Search</h1>
+    <p>Video scene search — semantic &amp; hybrid</p>
+  </header>
+
+  <div class="search-box">
+    <div class="search-row">
+      <input type="text" id="queryInput" placeholder="Nhập nội dung tìm kiếm..." autofocus>
+      <button id="searchBtn">Tìm kiếm</button>
+    </div>
+    <div class="controls">
+      <div class="control-group">
+        <label>Phương thức:</label>
+        <select id="searchType">
+          <option value="hybrid">Hybrid</option>
+          <option value="semantic">Semantic</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Top-K:</label>
+        <input type="number" id="topK" value="10" min="1" max="100">
+      </div>
+      <div class="toggle">
+        <label>LLM nâng cao</label>
+        <div class="switch">
+          <input type="checkbox" id="llmToggle">
+          <span class="slider"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="facets-panel" id="facetsPanel" style="display:none;">
+    <div class="facets-header">
+      <h3>Bộ lọc</h3>
+      <button class="facets-clear" id="clearFilters" style="display:none;">Xoá bộ lọc</button>
+    </div>
+    <div class="facet-groups" id="facetGroups"></div>
+    <div class="active-filters" id="activeFilters" style="display:none;"></div>
+  </div>
+
+  <div class="filter-bar" id="filterBar" style="display:none;">
+    <div class="result-count">
+      <strong id="resultCount">0</strong> kết quả
+    </div>
+    <div class="control-group">
+      <label>Sắp xếp:</label>
+      <select id="sortBy">
+        <option value="relevance">Độ liên quan</option>
+        <option value="date_desc">Ngày (mới nhất)</option>
+        <option value="date_asc">Ngày (cũ nhất)</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="status"></div>
+  <div class="results" id="results">
+    <div class="empty-state">Nhập từ khóa và nhấn "Tìm kiếm" để bắt đầu.</div>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const API_BASE = window.location.origin;
+
+let allHits = [];
+let allFacets = null;
+let activeFilters = {};  // { category: {value, scene_ids}, author: {value, scene_ids}, ... }
+let lastQuery = '';
+
+$('#queryInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doSearch();
+});
+$('#searchBtn').addEventListener('click', doSearch);
+$('#sortBy').addEventListener('change', renderHits);
+$('#clearFilters').addEventListener('click', clearAllFilters);
+
+async function doSearch() {
+  const query = $('#queryInput').value.trim();
+  if (!query) return;
+
+  lastQuery = query;
+  activeFilters = {};
+
+  const type = $('#searchType').value;
+  const k = parseInt($('#topK').value) || 10;
+  const useLLM = $('#llmToggle').checked;
+
+  const resultsEl = $('#results');
+  const statusEl = $('#status');
+  statusEl.innerHTML = '';
+  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Đang tìm kiếm...</div></div>';
+
+  try {
+    const params = new URLSearchParams({ query_text: query, k: k });
+    const endpoint = useLLM ? `${API_BASE}/v1/search/${type}?${params}&llm=true` : `${API_BASE}/v1/search/${type}?${params}`;
+    const resp = await fetch(endpoint);
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    allHits = data.hits || [];
+    allFacets = data.facets || null;
+
+    $('#filterBar').style.display = 'flex';
+    $('#sortBy').value = 'relevance';
+
+    renderFacets();
+    renderHits();
+  } catch (e) {
+    resultsEl.innerHTML = '';
+    statusEl.innerHTML = `<div class="error-msg">${e.message}</div>`;
+    $('#filterBar').style.display = 'none';
+    $('#facetsPanel').style.display = 'none';
+  }
+}
+
+async function doFilterSearch() {
+  const sceneIds = getFilteredSceneIds();
+  if (!sceneIds || sceneIds.length === 0) return;
+
+  const k = parseInt($('#topK').value) || 10;
+  const resultsEl = $('#results');
+  const statusEl = $('#status');
+  statusEl.innerHTML = '';
+  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Đang lọc...</div></div>';
+
+  try {
+    const resp = await fetch(`${API_BASE}/v1/search/filter`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query_text: lastQuery, scene_ids: sceneIds, k: k }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    allHits = data.hits || [];
+
+    renderHits();
+  } catch (e) {
+    resultsEl.innerHTML = '';
+    statusEl.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+function getFilteredSceneIds() {
+  const keys = Object.keys(activeFilters);
+  if (keys.length === 0) return null;
+
+  // Intersection of scene_ids across all active filters
+  let result = null;
+  for (const key of keys) {
+    const ids = new Set(activeFilters[key].scene_ids);
+    if (result === null) {
+      result = ids;
+    } else {
+      result = new Set([...result].filter(id => ids.has(id)));
+    }
+  }
+  return result ? [...result] : [];
+}
+
+const FACET_LABELS = {
+  category: 'Danh mục',
+  created_date: 'Ngày tạo',
+  author: 'Tác giả',
+};
+
+function renderFacets() {
+  const panel = $('#facetsPanel');
+  const groupsEl = $('#facetGroups');
+
+  if (!allFacets) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  const facetKeys = ['category', 'created_date', 'author'];
+  const hasFacets = facetKeys.some(k => allFacets[k] && allFacets[k].length > 0);
+
+  if (!hasFacets) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+
+  let html = '';
+  for (const key of facetKeys) {
+    const items = allFacets[key] || [];
+    if (items.length === 0) continue;
+
+    html += `<div class="facet-group">
+      <div class="facet-group-title">${FACET_LABELS[key]}</div>
+      <div class="facet-chips">`;
+
+    for (const item of items) {
+      const isActive = activeFilters[key] && activeFilters[key].value === item.value;
+      html += `<div class="facet-chip ${isActive ? 'active' : ''}"
+        data-field="${key}" data-value="${esc(item.value)}"
+        data-ids='${JSON.stringify(item.scene_ids)}'>
+        ${esc(item.value)} <span class="facet-count">${item.count}</span>
+      </div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  groupsEl.innerHTML = html;
+
+  // Attach click handlers
+  groupsEl.querySelectorAll('.facet-chip').forEach(chip => {
+    chip.addEventListener('click', () => toggleFacet(chip));
+  });
+
+  renderActiveFilters();
+}
+
+function toggleFacet(chip) {
+  const field = chip.dataset.field;
+  const value = chip.dataset.value;
+  const ids = JSON.parse(chip.dataset.ids);
+
+  if (activeFilters[field] && activeFilters[field].value === value) {
+    delete activeFilters[field];
+  } else {
+    activeFilters[field] = { value, scene_ids: ids };
+  }
+
+  // Update chip states
+  $('#facetGroups').querySelectorAll('.facet-chip').forEach(c => {
+    const f = c.dataset.field;
+    const v = c.dataset.value;
+    c.classList.toggle('active', activeFilters[f] && activeFilters[f].value === v);
+  });
+
+  renderActiveFilters();
+
+  if (Object.keys(activeFilters).length > 0) {
+    doFilterSearch();
+  } else {
+    doSearch();
+  }
+}
+
+function renderActiveFilters() {
+  const el = $('#activeFilters');
+  const clearBtn = $('#clearFilters');
+  const keys = Object.keys(activeFilters);
+
+  if (keys.length === 0) {
+    el.style.display = 'none';
+    clearBtn.style.display = 'none';
+    return;
+  }
+
+  clearBtn.style.display = 'inline-block';
+  el.style.display = 'flex';
+  el.innerHTML = keys.map(key =>
+    `<span class="active-filter-tag">
+      ${FACET_LABELS[key]}: ${esc(activeFilters[key].value)}
+      <span class="remove-filter" data-field="${key}">&times;</span>
+    </span>`
+  ).join('');
+
+  el.querySelectorAll('.remove-filter').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const field = btn.dataset.field;
+      delete activeFilters[field];
+
+      $('#facetGroups').querySelectorAll('.facet-chip').forEach(c => {
+        if (c.dataset.field === field) c.classList.remove('active');
+      });
+
+      renderActiveFilters();
+
+      if (Object.keys(activeFilters).length > 0) {
+        doFilterSearch();
+      } else {
+        doSearch();
+      }
+    });
+  });
+}
+
+function clearAllFilters() {
+  activeFilters = {};
+  $('#facetGroups').querySelectorAll('.facet-chip').forEach(c => c.classList.remove('active'));
+  renderActiveFilters();
+  doSearch();
+}
+
+function renderHits() {
+  const resultsEl = $('#results');
+  let hits = [...allHits];
+
+  // Sort
+  const sortBy = $('#sortBy').value;
+  if (sortBy === 'date_desc') {
+    hits.sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
+  } else if (sortBy === 'date_asc') {
+    hits.sort((a, b) => (a.created_date || '').localeCompare(b.created_date || ''));
+  }
+
+  $('#resultCount').textContent = hits.length;
+
+  if (hits.length === 0) {
+    resultsEl.innerHTML = '<div class="empty-state">Không tìm thấy kết quả phù hợp.</div>';
+    return;
+  }
+
+  resultsEl.innerHTML = hits.map((h, i) => {
+    const timeRange = formatTime(h.start_time_sec) + ' — ' + formatTime(h.end_time_sec);
+    const tags = (h.video_tags || []).map(t => `<span class="meta-tag">${esc(t)}</span>`).join('');
+    const date = h.created_date || '';
+
+    return `
+      <div class="scene-card">
+        <div class="card-header">
+          <div class="video-title">${esc(h.video_title)}</div>
+          <div class="score">${h.score.toFixed(4)}</div>
+        </div>
+        <div class="scene-desc">${esc(h.scene_description)}</div>
+        <div class="card-meta">
+          <span class="meta-time">${timeRange}</span>
+          ${h.category ? `<span class="meta-sep">|</span><span class="meta-category">${esc(h.category)}</span>` : ''}
+          ${h.author ? `<span class="meta-sep">|</span><span class="meta-author">${esc(h.author)}</span>` : ''}
+          ${date ? `<span class="meta-sep">|</span><span class="meta-date">${date}</span>` : ''}
+          ${tags ? `<span class="meta-sep">|</span>${tags}` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function formatTime(sec) {
+  if (sec == null) return '--:--';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

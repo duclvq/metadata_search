@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "WebFetch(domain:docs.opensearch.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:opensearch.org)",
+      "WebFetch(domain:opster.com)",
+      "Bash(curl:*)",
+      "Bash(/home/leduc/miniconda3/envs/metadata_search/bin/python:*)",
+      "Bash(find:*)",
+      "Bash(python:*)",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 15; curl.exe -s http://localhost:9200/_plugins/_ml/tasks/cFAbRpwBgJMxUoMQ7n39\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 10; curl.exe -s http://localhost:9200/_plugins/_ml/tasks/c1AdRpwBgJMxUoMQ333k\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 25; curl.exe -s http://localhost:9200/_cat/health\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 15; curl.exe -s http://localhost:9200/_plugins/_ml/tasks/K8wgRpwBrGTgxejGyo3N\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 20; curl.exe -s http://localhost:9200/_cat/health\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 30; curl.exe -s http://localhost:9200/_plugins/_ml/tasks/LogjRpwBgZqRe2XBa6TI\")",
+      "Bash(pip install:*)",
+      "Read(//d/**)",
+      "Bash(cd:*)"
+    ]
+  }
+}
