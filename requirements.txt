@@ -1,6 +1,7 @@
 fastapi
 uvicorn
+pymilvus==2.6.8
 pymilvus[model]
 pydantic-settings
 pymongo
-bson
+requests
