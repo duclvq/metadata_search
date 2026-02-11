@@ -18,5 +18,5 @@ services:
       MS_MONGO_COLLECTION: video_queue
     volumes:
       - C:\Users\Administrator\metadata_search:/app
-    command: uvicorn search_api.main:app --host 0.0.0.0 --port 8003 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8003 --reload
     restart: unless-stopped
