@@ -94,13 +94,13 @@ def _milvus_scene_semantic(query_text: str, k: int, filter_expr: str | None = No
     return SearchResponse(total=result["total"], hits=hits, facets=facets)
 
 
-def _milvus_scene_fulltext(query_text: str, k: int) -> SearchResponse:
+def _milvus_scene_fulltext(query_text: str, k: int, filter_expr: str | None = None) -> SearchResponse:
     from src.milvus_client import get_milvus_client
     from src.milvus_queries import search_scene_fulltext
 
     client = get_milvus_client()
     try:
-        result = search_scene_fulltext(client, query_text, k)
+        result = search_scene_fulltext(client, query_text, k, filter_expr)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
     hits = [SceneHit(**h) for h in result["hits"]]
@@ -108,14 +108,14 @@ def _milvus_scene_fulltext(query_text: str, k: int) -> SearchResponse:
     return SearchResponse(total=result["total"], hits=hits, facets=facets)
 
 
-def _milvus_scene_hybrid(query_text: str, k: int) -> SearchResponse:
+def _milvus_scene_hybrid(query_text: str, k: int, filter_expr: str | None = None) -> SearchResponse:
     from src.milvus_client import get_embedding_fn, get_milvus_client
     from src.milvus_queries import search_scene_hybrid
 
     client = get_milvus_client()
     embedding_fn = get_embedding_fn()
     try:
-        result = search_scene_hybrid(client, embedding_fn, query_text, k)
+        result = search_scene_hybrid(client, embedding_fn, query_text, k, filter_expr)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
     hits = [SceneHit(**h) for h in result["hits"]]
@@ -125,14 +125,14 @@ def _milvus_scene_hybrid(query_text: str, k: int) -> SearchResponse:
 
 # ---- Milvus content helpers ----
 
-def _milvus_content_semantic(query_text: str, k: int) -> ContentSearchResponse:
+def _milvus_content_semantic(query_text: str, k: int, filter_expr: str | None = None) -> ContentSearchResponse:
     from src.milvus_client import get_embedding_fn, get_milvus_client
     from src.milvus_queries import search_content_semantic
 
     client = get_milvus_client()
     embedding_fn = get_embedding_fn()
     try:
-        result = search_content_semantic(client, embedding_fn, query_text, k)
+        result = search_content_semantic(client, embedding_fn, query_text, k, filter_expr)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
     hits = [ContentHit(**h) for h in result["hits"]]
@@ -140,13 +140,13 @@ def _milvus_content_semantic(query_text: str, k: int) -> ContentSearchResponse:
     return ContentSearchResponse(total=result["total"], hits=hits, facets=facets)
 
 
-def _milvus_content_fulltext(query_text: str, k: int) -> ContentSearchResponse:
+def _milvus_content_fulltext(query_text: str, k: int, filter_expr: str | None = None) -> ContentSearchResponse:
     from src.milvus_client import get_milvus_client
     from src.milvus_queries import search_content_fulltext
 
     client = get_milvus_client()
     try:
-        result = search_content_fulltext(client, query_text, k)
+        result = search_content_fulltext(client, query_text, k, filter_expr)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
     hits = [ContentHit(**h) for h in result["hits"]]
@@ -154,14 +154,14 @@ def _milvus_content_fulltext(query_text: str, k: int) -> ContentSearchResponse:
     return ContentSearchResponse(total=result["total"], hits=hits, facets=facets)
 
 
-def _milvus_content_hybrid(query_text: str, k: int) -> ContentSearchResponse:
+def _milvus_content_hybrid(query_text: str, k: int, filter_expr: str | None = None) -> ContentSearchResponse:
     from src.milvus_client import get_embedding_fn, get_milvus_client
     from src.milvus_queries import search_content_hybrid
 
     client = get_milvus_client()
     embedding_fn = get_embedding_fn()
     try:
-        result = search_content_hybrid(client, embedding_fn, query_text, k)
+        result = search_content_hybrid(client, embedding_fn, query_text, k, filter_expr)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
     hits = [ContentHit(**h) for h in result["hits"]]
@@ -169,111 +169,95 @@ def _milvus_content_hybrid(query_text: str, k: int) -> ContentSearchResponse:
     return ContentSearchResponse(total=result["total"], hits=hits, facets=facets)
 
 
-# ---- Scene endpoints ----
+# ---- Scene search (unified) ----
 
-@router.get("/scene/semantic", response_model=SearchResponse)
-def scene_semantic_search(
+@router.get("/scene", response_model=SearchResponse)
+def scene_search(
     query_text: str = Query(..., min_length=1),
     k: int = Query(default=10, ge=1, le=100),
+    search_type: str = Query(default="hybrid", pattern="^(semantic|fulltext|hybrid)$"),
 ):
-    if settings.backend == "milvus":
-        return _milvus_scene_semantic(query_text, k)
-    return _opensearch_semantic(query_text, k)
+    if search_type == "fulltext":
+        if settings.backend != "milvus":
+            raise HTTPException(status_code=501, detail="Full-text search only supports Milvus backend")
+        return _milvus_scene_fulltext(query_text, k)
 
+    if search_type == "semantic":
+        if settings.backend == "milvus":
+            return _milvus_scene_semantic(query_text, k)
+        return _opensearch_semantic(query_text, k)
 
-@router.get("/scene/fulltext", response_model=SearchResponse)
-def scene_fulltext_search(
-    query_text: str = Query(..., min_length=1),
-    k: int = Query(default=10, ge=1, le=100),
-):
-    if settings.backend != "milvus":
-        raise HTTPException(status_code=501, detail="Full-text search only supports Milvus backend")
-    return _milvus_scene_fulltext(query_text, k)
-
-
-@router.get("/scene/hybrid", response_model=SearchResponse)
-def scene_hybrid_search(
-    query_text: str = Query(..., min_length=1),
-    k: int = Query(default=10, ge=1, le=100),
-):
+    # hybrid (default)
     if settings.backend == "milvus":
         return _milvus_scene_hybrid(query_text, k)
     return _opensearch_hybrid(query_text, k)
 
 
-# ---- Content endpoints ----
+# ---- Content search (unified) ----
 
-@router.get("/content/semantic", response_model=ContentSearchResponse)
-def content_semantic_search(
+@router.get("/content", response_model=ContentSearchResponse)
+def content_search(
     query_text: str = Query(..., min_length=1),
     k: int = Query(default=10, ge=1, le=100),
+    search_type: str = Query(default="hybrid", pattern="^(semantic|fulltext|hybrid)$"),
 ):
     if settings.backend != "milvus":
         raise HTTPException(status_code=501, detail="Content search only supports Milvus backend")
-    return _milvus_content_semantic(query_text, k)
 
-
-@router.get("/content/fulltext", response_model=ContentSearchResponse)
-def content_fulltext_search(
-    query_text: str = Query(..., min_length=1),
-    k: int = Query(default=10, ge=1, le=100),
-):
-    if settings.backend != "milvus":
-        raise HTTPException(status_code=501, detail="Content search only supports Milvus backend")
-    return _milvus_content_fulltext(query_text, k)
-
-
-@router.get("/content/hybrid", response_model=ContentSearchResponse)
-def content_hybrid_search(
-    query_text: str = Query(..., min_length=1),
-    k: int = Query(default=10, ge=1, le=100),
-):
-    if settings.backend != "milvus":
-        raise HTTPException(status_code=501, detail="Content search only supports Milvus backend")
+    if search_type == "fulltext":
+        return _milvus_content_fulltext(query_text, k)
+    if search_type == "semantic":
+        return _milvus_content_semantic(query_text, k)
     return _milvus_content_hybrid(query_text, k)
 
 
 # ---- Scene filter ----
 
-class FilterRequest(BaseModel):
+class SceneFilterRequest(BaseModel):
     query_text: str = Field(..., min_length=1)
     scene_ids: list[str] = Field(..., min_length=1)
     k: int = Field(default=10, ge=1, le=100)
+    search_type: str = Field(default="semantic", pattern="^(semantic|fulltext|hybrid)$")
 
 
 @router.post("/scene/filter", response_model=SearchResponse)
-def scene_filter_search(req: FilterRequest):
+def scene_filter_search(req: SceneFilterRequest):
     if settings.backend != "milvus":
         raise HTTPException(status_code=501, detail="Filter API only supports Milvus backend")
     ids_str = ", ".join(f'"{sid}"' for sid in req.scene_ids)
     filter_expr = f"scene_id in [{ids_str}]"
+
+    if req.search_type == "hybrid":
+        return _milvus_scene_hybrid(req.query_text, req.k, filter_expr)
+    if req.search_type == "fulltext":
+        return _milvus_scene_fulltext(req.query_text, req.k, filter_expr)
     return _milvus_scene_semantic(req.query_text, req.k, filter_expr)
 
 
-# ---- Backward-compatible aliases (hidden from docs) ----
+# ---- Content filter ----
 
-@router.get("/semantic", response_model=SearchResponse, include_in_schema=False)
-def semantic_search_legacy(
-    query_text: str = Query(..., min_length=1),
-    k: int = Query(default=10, ge=1, le=100),
-):
-    return scene_semantic_search(query_text, k)
-
-
-@router.get("/hybrid", response_model=SearchResponse, include_in_schema=False)
-def hybrid_search_legacy(
-    query_text: str = Query(..., min_length=1),
-    k: int = Query(default=10, ge=1, le=100),
-):
-    return scene_hybrid_search(query_text, k)
+class ContentFilterRequest(BaseModel):
+    query_text: str = Field(..., min_length=1)
+    content_ids: list[str] = Field(..., min_length=1)
+    k: int = Field(default=10, ge=1, le=100)
+    search_type: str = Field(default="semantic", pattern="^(semantic|fulltext|hybrid)$")
 
 
-@router.post("/filter", response_model=SearchResponse, include_in_schema=False)
-def filter_search_legacy(req: FilterRequest):
-    return scene_filter_search(req)
+@router.post("/content/filter", response_model=ContentSearchResponse)
+def content_filter_search(req: ContentFilterRequest):
+    if settings.backend != "milvus":
+        raise HTTPException(status_code=501, detail="Filter API only supports Milvus backend")
+    ids_str = ", ".join(f'"{cid}"' for cid in req.content_ids)
+    filter_expr = f"content_id in [{ids_str}]"
+
+    if req.search_type == "hybrid":
+        return _milvus_content_hybrid(req.query_text, req.k, filter_expr)
+    if req.search_type == "fulltext":
+        return _milvus_content_fulltext(req.query_text, req.k, filter_expr)
+    return _milvus_content_semantic(req.query_text, req.k, filter_expr)
 
 
-# ---- List endpoints ----
+# ---- List endpoints (unchanged) ----
 
 @router.get("/scene/list")
 def list_scenes(

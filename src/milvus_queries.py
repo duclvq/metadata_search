@@ -179,6 +179,16 @@ def search_scene_fulltext(
     return {"total": len(hits), "hits": hits, "facets": facets}
 
 
+def search_scene_fulltext_with_filter(
+    client: MilvusClient,
+    query_text: str,
+    k: int,
+    filter_expr: str | None = None,
+) -> dict:
+    """Alias for search_scene_fulltext with filter support."""
+    return search_scene_fulltext(client, query_text, k, filter_expr)
+
+
 def search_scene_hybrid(
     client: MilvusClient,
     embedding_fn,

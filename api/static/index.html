@@ -510,8 +510,8 @@ async function doSearch() {
   resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Dang tim kiem...</div></div>';
 
   try {
-    const params = new URLSearchParams({ query_text: query, k: k });
-    const endpoint = `${API_BASE}/v1/search/${currentMode}/${type}?${params}`;
+    const params = new URLSearchParams({ query_text: query, k: k, search_type: type });
+    const endpoint = `${API_BASE}/v1/search/${currentMode}?${params}`;
     const resp = await fetch(endpoint);
 
     if (!resp.ok) {
@@ -578,20 +578,26 @@ async function doList() {
 }
 
 async function doFilterSearch() {
-  const sceneIds = getFilteredIds();
-  if (!sceneIds || sceneIds.length === 0) return;
+  const filteredIds = getFilteredIds();
+  if (!filteredIds || filteredIds.length === 0) return;
 
   const k = parseInt($('#topK').value) || 10;
+  const searchType = $('#searchType').value || 'semantic';
   const resultsEl = $('#results');
   const statusEl = $('#status');
   statusEl.innerHTML = '';
   resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Dang loc...</div></div>';
 
   try {
-    const resp = await fetch(`${API_BASE}/v1/search/scene/filter`, {
+    const endpoint = `${API_BASE}/v1/search/${currentMode}/filter`;
+    const body = currentMode === 'scene'
+      ? { query_text: lastQuery, scene_ids: filteredIds, k: k, search_type: searchType }
+      : { query_text: lastQuery, content_ids: filteredIds, k: k, search_type: searchType };
+
+    const resp = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query_text: lastQuery, scene_ids: sceneIds, k: k }),
+      body: JSON.stringify(body),
     });
 
     if (!resp.ok) {
@@ -694,9 +700,9 @@ function toggleFacet(chip) {
 
   renderActiveFilters();
 
-  if (currentMode === 'scene' && Object.keys(activeFilters).length > 0) {
+  if (Object.keys(activeFilters).length > 0) {
     doFilterSearch();
-  } else if (Object.keys(activeFilters).length === 0) {
+  } else {
     doSearch();
   }
 }
