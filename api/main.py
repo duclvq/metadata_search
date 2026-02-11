@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from api.routes import crud, ingest, search
+from api.routes import crud, face_search, ingest, search
 from src.config import settings
 
 logger = logging.getLogger(__name__)
@@ -55,6 +55,7 @@ app = FastAPI(
 
 app.include_router(ingest.router)
 app.include_router(search.router)
+app.include_router(face_search.router)
 # app.include_router(crud.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 

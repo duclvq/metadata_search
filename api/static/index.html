@@ -430,12 +430,101 @@
     margin-bottom: 1rem;
   }
 
+  /* Face search */
+  .face-search-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  .face-search-box.visible { display: block; }
+
+  .face-input-row {
+    display: flex;
+    gap: .75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .face-input-row input[type="text"] {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem 1rem;
+    color: var(--text);
+    font-size: .95rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .face-input-row input[type="text"]:focus { border-color: var(--accent); }
+
+  .file-upload-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .55rem 1rem;
+    color: var(--text2);
+    font-size: .85rem;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+
+  .file-upload-label:hover { border-color: var(--accent); color: var(--text); }
+  .file-upload-label input[type="file"] { display: none; }
+
+  .file-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: .75rem;
+  }
+
+  .file-preview-item {
+    position: relative;
+    width: 56px; height: 56px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .file-preview-item img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+
+  .file-preview-item .remove-img {
+    position: absolute;
+    top: 2px; right: 2px;
+    background: rgba(0,0,0,.7);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 18px; height: 18px;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
   @media (max-width: 600px) {
     .search-row { flex-direction: column; }
     .controls { flex-direction: column; align-items: flex-start; }
     .btn-list { margin-left: 0; }
     .filter-bar { flex-direction: column; align-items: flex-start; }
     .facet-groups { flex-direction: column; }
+    .face-input-row { flex-direction: column; }
   }
 </style>
 </head>
@@ -449,9 +538,28 @@
   <div class="mode-tabs">
     <button class="mode-tab active" data-mode="scene">Scene (Phan canh)</button>
     <button class="mode-tab" data-mode="content">Content (Video)</button>
+    <button class="mode-tab" data-mode="face">Face Search</button>
   </div>
 
-  <div class="search-box">
+  <div class="face-search-box" id="faceSearchBox">
+    <div class="face-input-row">
+      <input type="text" id="faceNameInput" placeholder="Nhap ten khuon mat (cach nhau boi dau phay)...">
+      <label class="file-upload-label">
+        &#128247; Chon anh
+        <input type="file" id="faceFileInput" accept="image/*" multiple>
+      </label>
+      <button id="faceSearchBtn" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.65rem 1.5rem;font-size:.95rem;font-weight:500;cursor:pointer;white-space:nowrap;">Tim kiem</button>
+    </div>
+    <div class="file-preview" id="faceFilePreview"></div>
+    <div class="controls">
+      <div class="control-group">
+        <label>Top-K:</label>
+        <input type="number" id="faceTopK" value="10" min="1" max="100">
+      </div>
+    </div>
+  </div>
+
+  <div class="search-box" id="textSearchBox">
     <div class="search-row">
       <input type="text" id="queryInput" placeholder="Nhap noi dung tim kiem..." autofocus>
       <button id="searchBtn">Tim kiem</button>
@@ -471,7 +579,7 @@
       </div>
       <button class="btn-list" id="listBtn">Danh sach</button>
     </div>
-  </div>
+  </div><!-- /textSearchBox -->
 
   <div class="facets-panel" id="facetsPanel" style="display:none;">
     <div class="facets-header">
@@ -507,11 +615,13 @@ const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 const API_BASE = window.location.origin;
 
-let currentMode = 'scene'; // 'scene' or 'content'
+let currentMode = 'scene'; // 'scene', 'content', or 'face'
 let allHits = [];
 let allFacets = null;
 let activeFilters = {};
 let lastQuery = '';
+let lastFaceNames = [];
+let selectedFaceFiles = [];
 
 // Mode tabs
 $$('.mode-tab').forEach(tab => {
@@ -519,6 +629,9 @@ $$('.mode-tab').forEach(tab => {
     $$('.mode-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     currentMode = tab.dataset.mode;
+    // Toggle search boxes
+    $('#textSearchBox').style.display = currentMode === 'face' ? 'none' : 'block';
+    $('#faceSearchBox').classList.toggle('visible', currentMode === 'face');
     // Reset state
     allHits = [];
     allFacets = null;
@@ -537,6 +650,36 @@ $('#searchBtn').addEventListener('click', doSearch);
 $('#sortBy').addEventListener('change', renderHits);
 $('#clearFilters').addEventListener('click', clearAllFilters);
 $('#listBtn').addEventListener('click', doList);
+
+// Face search events
+$('#faceNameInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doFaceSearch();
+});
+$('#faceSearchBtn').addEventListener('click', doFaceSearch);
+$('#faceFileInput').addEventListener('change', (e) => {
+  const files = Array.from(e.target.files);
+  selectedFaceFiles = selectedFaceFiles.concat(files);
+  renderFacePreview();
+  e.target.value = '';
+});
+
+function renderFacePreview() {
+  const el = $('#faceFilePreview');
+  if (selectedFaceFiles.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = selectedFaceFiles.map((f, i) => {
+    const url = URL.createObjectURL(f);
+    return `<div class="file-preview-item">
+      <img src="${url}">
+      <button class="remove-img" data-idx="${i}">&times;</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.remove-img').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedFaceFiles.splice(parseInt(btn.dataset.idx), 1);
+      renderFacePreview();
+    });
+  });
+}
 
 async function doSearch() {
   const query = $('#queryInput').value.trim();
@@ -621,6 +764,94 @@ async function doList() {
   }
 }
 
+async function doFaceSearch() {
+  const namesRaw = $('#faceNameInput').value.trim();
+  const names = namesRaw ? namesRaw.split(',').map(n => n.trim()).filter(n => n) : [];
+  const k = parseInt($('#faceTopK').value) || 10;
+
+  if (names.length === 0 && selectedFaceFiles.length === 0) return;
+
+  lastFaceNames = names;
+  activeFilters = {};
+
+  const resultsEl = $('#results');
+  const statusEl = $('#status');
+  statusEl.innerHTML = '';
+  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Dang tim kiem khuon mat...</div></div>';
+
+  try {
+    const formData = new FormData();
+    for (const name of names) {
+      formData.append('face_names', name);
+    }
+    for (const file of selectedFaceFiles) {
+      formData.append('images', file);
+    }
+    formData.append('k', k);
+
+    const resp = await fetch(`${API_BASE}/v1/face_search`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    allHits = data.hits || [];
+    allFacets = data.facets || null;
+
+    $('#filterBar').style.display = 'flex';
+    $('#sortBy').value = 'relevance';
+
+    renderFacets();
+    renderHits();
+  } catch (e) {
+    resultsEl.innerHTML = '';
+    statusEl.innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+    $('#filterBar').style.display = 'none';
+    $('#facetsPanel').style.display = 'none';
+  }
+}
+
+async function doFaceFilterSearch() {
+  const keys = Object.keys(activeFilters);
+  if (keys.length === 0 || lastFaceNames.length === 0) return;
+
+  const k = parseInt($('#faceTopK').value) || 10;
+  const resultsEl = $('#results');
+  const statusEl = $('#status');
+  statusEl.innerHTML = '';
+  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Dang loc...</div></div>';
+
+  try {
+    const body = { face_names: lastFaceNames, k: k };
+    for (const key of keys) {
+      body[key] = [activeFilters[key].value];
+    }
+
+    const resp = await fetch(`${API_BASE}/v1/face_search/filter`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    allHits = data.hits || [];
+    renderHits();
+  } catch (e) {
+    resultsEl.innerHTML = '';
+    statusEl.innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+  }
+}
+
 async function doFilterSearch() {
   const keys = Object.keys(activeFilters);
   if (keys.length === 0) return;
@@ -676,7 +907,7 @@ function renderFacets() {
 
   if (!allFacets) { panel.style.display = 'none'; return; }
 
-  const facetKeys = currentMode === 'scene'
+  const facetKeys = currentMode === 'scene' || currentMode === 'face'
     ? ['category', 'created_date', 'author', 'broadcast_date', 'program_id', 'content_type_id']
     : ['category', 'author', 'broadcast_date', 'program_id', 'content_type_id'];
   const hasFacets = facetKeys.some(k => allFacets[k] && allFacets[k].length > 0);
@@ -735,9 +966,11 @@ function toggleFacet(chip) {
   renderActiveFilters();
 
   if (Object.keys(activeFilters).length > 0) {
-    doFilterSearch();
+    if (currentMode === 'face') doFaceFilterSearch();
+    else doFilterSearch();
   } else {
-    doSearch();
+    if (currentMode === 'face') doFaceSearch();
+    else doSearch();
   }
 }
 
@@ -771,9 +1004,11 @@ function renderActiveFilters() {
       });
       renderActiveFilters();
       if (Object.keys(activeFilters).length > 0) {
-        doFilterSearch();
+        if (currentMode === 'face') doFaceFilterSearch();
+        else doFilterSearch();
       } else {
-        doSearch();
+        if (currentMode === 'face') doFaceSearch();
+        else doSearch();
       }
     });
   });
@@ -783,7 +1018,8 @@ function clearAllFilters() {
   activeFilters = {};
   $('#facetGroups').querySelectorAll('.facet-chip').forEach(c => c.classList.remove('active'));
   renderActiveFilters();
-  doSearch();
+  if (currentMode === 'face') doFaceSearch();
+  else doSearch();
 }
 
 function renderHits() {
@@ -791,7 +1027,7 @@ function renderHits() {
   let hits = [...allHits];
 
   const sortBy = $('#sortBy').value;
-  if (currentMode === 'scene') {
+  if (currentMode === 'scene' || currentMode === 'face') {
     if (sortBy === 'date_desc') hits.sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
     else if (sortBy === 'date_asc') hits.sort((a, b) => (a.created_date || '').localeCompare(b.created_date || ''));
   } else {
@@ -806,7 +1042,7 @@ function renderHits() {
     return;
   }
 
-  if (currentMode === 'scene') {
+  if (currentMode === 'scene' || currentMode === 'face') {
     resultsEl.innerHTML = hits.map(h => renderSceneCard(h)).join('');
   } else {
     resultsEl.innerHTML = hits.map(h => renderContentCard(h)).join('');
