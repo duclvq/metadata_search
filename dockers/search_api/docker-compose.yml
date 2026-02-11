@@ -16,9 +16,7 @@ services:
       MS_MONGO_URI: mongodb://host.docker.internal:27017/?replicaSet=rs0
       MS_MONGO_DB: Metadata_Enrichment
       MS_MONGO_COLLECTION: video_queue
-    # Mount source code → sửa code tự động cập nhật, không cần build lại
     volumes:
-      - ../../api:/app/api
-      - ../../src:/app/src
-      - ../../scripts:/app/scripts
+      - C:\Users\Administrator\metadata_search:/app
+    command: uvicorn search_api.main:app --host 0.0.0.0 --port 8003 --reload
     restart: unless-stopped
