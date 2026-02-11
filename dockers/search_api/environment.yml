@@ -21,4 +21,4 @@ dependencies:
       - huggingface-hub>=1.4
       - torch==2.8.0
       - torchaudio==0.25.0
-      - python-multipart==0.0.6
+      - python-multipart
