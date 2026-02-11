@@ -80,6 +80,20 @@ python -m scripts.mongo_watcher --full-sync-only
 python -m scripts.mongo_watcher --reset-token
 ```
 
+## Quản lý Milvus Collection
+
+```bash
+# Xoá collection và tạo lại với schema mới
+python -m scripts.drop_collection
+
+# Chỉ xoá, không tạo lại
+python -m scripts.drop_collection --drop-only
+```
+
+> **Lưu ý**: API không tự động xoá collection khi khởi động. Nếu schema thay đổi,
+> bạn cần chạy lệnh trên để xoá và tạo lại, sau đó sync lại data bằng
+> `python -m scripts.mongo_watcher --full-sync-only`.
+
 ### Cài watcher như Windows Service (nssm)
 
 ```bash

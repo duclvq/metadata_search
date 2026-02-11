@@ -29,7 +29,7 @@
   }
 
   .container {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     padding: 2rem 1.5rem;
   }
@@ -39,18 +39,37 @@
     margin-bottom: 2rem;
   }
 
-  header h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: .25rem;
+  header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: .25rem; }
+  header p { color: var(--text2); font-size: .85rem; }
+
+  /* Mode tabs */
+  .mode-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
   }
 
-  header p {
+  .mode-tab {
+    flex: 1;
+    padding: .7rem 1rem;
+    text-align: center;
+    background: var(--surface);
     color: var(--text2);
-    font-size: .85rem;
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all .2s;
   }
 
-  /* Search Section */
+  .mode-tab:not(:last-child) { border-right: 1px solid var(--border); }
+  .mode-tab:hover { color: var(--text); background: var(--surface2); }
+  .mode-tab.active { background: var(--accent); color: #fff; }
+
+  /* Search box */
   .search-box {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -77,9 +96,7 @@
     transition: border-color .2s;
   }
 
-  .search-row input[type="text"]:focus {
-    border-color: var(--accent);
-  }
+  .search-row input[type="text"]:focus { border-color: var(--accent); }
 
   .search-row button {
     background: var(--accent);
@@ -129,50 +146,21 @@
   .control-group input[type="number"] { width: 60px; }
   .control-group select { min-width: 100px; }
 
-  /* Toggle switch */
-  .toggle {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
+  .btn-list {
     margin-left: auto;
-  }
-
-  .toggle label { font-size: .8rem; color: var(--text2); }
-
-  .switch {
-    position: relative;
-    width: 36px;
-    height: 20px;
-  }
-
-  .switch input { opacity: 0; width: 0; height: 0; }
-
-  .slider {
-    position: absolute;
-    inset: 0;
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 6px;
+    padding: .4rem .8rem;
+    color: var(--text2);
+    font-size: .8rem;
     cursor: pointer;
-    transition: background .2s;
+    transition: all .2s;
   }
 
-  .slider::before {
-    content: "";
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    left: 2px;
-    top: 2px;
-    background: var(--text2);
-    border-radius: 50%;
-    transition: transform .2s, background .2s;
-  }
+  .btn-list:hover { border-color: var(--accent); color: var(--text); }
 
-  .switch input:checked + .slider { background: var(--accent); border-color: var(--accent); }
-  .switch input:checked + .slider::before { transform: translateX(16px); background: #fff; }
-
-  /* Facets panel */
+  /* Facets */
   .facets-panel {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -209,15 +197,9 @@
 
   .facets-clear:hover { background: var(--tag-bg); }
 
-  .facet-groups {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-  }
+  .facet-groups { display: flex; flex-wrap: wrap; gap: 1.25rem; }
 
-  .facet-group {
-    min-width: 150px;
-  }
+  .facet-group { min-width: 150px; }
 
   .facet-group-title {
     font-size: .78rem;
@@ -226,11 +208,7 @@
     font-weight: 500;
   }
 
-  .facet-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-  }
+  .facet-chips { display: flex; flex-wrap: wrap; gap: .35rem; }
 
   .facet-chip {
     display: inline-flex;
@@ -247,10 +225,7 @@
     user-select: none;
   }
 
-  .facet-chip:hover {
-    border-color: var(--accent);
-    color: var(--text);
-  }
+  .facet-chip:hover { border-color: var(--accent); color: var(--text); }
 
   .facet-chip.active {
     background: var(--tag-bg);
@@ -266,10 +241,7 @@
     font-weight: 600;
   }
 
-  .facet-chip.active .facet-count {
-    background: var(--accent);
-    color: #fff;
-  }
+  .facet-chip.active .facet-count { background: var(--accent); color: #fff; }
 
   .active-filters {
     display: flex;
@@ -320,14 +292,12 @@
     margin-right: auto;
   }
 
-  .filter-bar .result-count strong {
-    color: var(--text);
-  }
+  .filter-bar .result-count strong { color: var(--text); }
 
   /* Results */
   .results { display: flex; flex-direction: column; gap: .75rem; }
 
-  .scene-card {
+  .scene-card, .content-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -335,7 +305,7 @@
     transition: border-color .2s;
   }
 
-  .scene-card:hover { border-color: var(--accent); }
+  .scene-card:hover, .content-card:hover { border-color: var(--accent); }
 
   .card-header {
     display: flex;
@@ -345,10 +315,7 @@
     gap: 1rem;
   }
 
-  .card-header .video-title {
-    font-weight: 600;
-    font-size: .95rem;
-  }
+  .card-header .video-title { font-weight: 600; font-size: .95rem; }
 
   .card-header .score {
     background: var(--tag-bg);
@@ -360,11 +327,20 @@
     white-space: nowrap;
   }
 
-  .scene-desc {
+  .scene-desc, .content-desc {
     color: var(--text2);
     font-size: .88rem;
     line-height: 1.5;
     margin-bottom: .6rem;
+  }
+
+  .content-desc {
+    max-height: 4.5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
   }
 
   .card-meta {
@@ -376,36 +352,21 @@
     color: var(--text2);
   }
 
-  .meta-tag {
-    background: var(--tag-bg);
-    padding: .15rem .5rem;
-    border-radius: 4px;
-  }
-
+  .meta-tag { background: var(--tag-bg); padding: .15rem .5rem; border-radius: 4px; }
   .meta-time { color: var(--green); }
+  .meta-duration { color: var(--green); }
   .meta-date { color: var(--orange); }
   .meta-sep { color: var(--border); }
   .meta-category { color: var(--accent); font-weight: 500; }
   .meta-author { color: #c084fc; }
 
   /* States */
-  .empty-state {
-    text-align: center;
-    color: var(--text2);
-    padding: 3rem 1rem;
-    font-size: .9rem;
-  }
-
-  .loading {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text2);
-  }
+  .empty-state { text-align: center; color: var(--text2); padding: 3rem 1rem; font-size: .9rem; }
+  .loading { text-align: center; padding: 2rem; color: var(--text2); }
 
   .spinner {
     display: inline-block;
-    width: 24px;
-    height: 24px;
+    width: 24px; height: 24px;
     border: 2px solid var(--border);
     border-top-color: var(--accent);
     border-radius: 50%;
@@ -428,7 +389,7 @@
   @media (max-width: 600px) {
     .search-row { flex-direction: column; }
     .controls { flex-direction: column; align-items: flex-start; }
-    .toggle { margin-left: 0; }
+    .btn-list { margin-left: 0; }
     .filter-bar { flex-direction: column; align-items: flex-start; }
     .facet-groups { flex-direction: column; }
   }
@@ -438,40 +399,40 @@
 <div class="container">
   <header>
     <h1>Metadata Search</h1>
-    <p>Video scene search — semantic &amp; hybrid</p>
+    <p>Video search — scene &amp; content</p>
   </header>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="scene">Scene (Phan canh)</button>
+    <button class="mode-tab" data-mode="content">Content (Video)</button>
+  </div>
 
   <div class="search-box">
     <div class="search-row">
-      <input type="text" id="queryInput" placeholder="Nhập nội dung tìm kiếm..." autofocus>
-      <button id="searchBtn">Tìm kiếm</button>
+      <input type="text" id="queryInput" placeholder="Nhap noi dung tim kiem..." autofocus>
+      <button id="searchBtn">Tim kiem</button>
     </div>
     <div class="controls">
       <div class="control-group">
-        <label>Phương thức:</label>
+        <label>Phuong thuc:</label>
         <select id="searchType">
           <option value="hybrid">Hybrid</option>
           <option value="semantic">Semantic</option>
+          <option value="fulltext">Fulltext (BM25)</option>
         </select>
       </div>
       <div class="control-group">
         <label>Top-K:</label>
         <input type="number" id="topK" value="10" min="1" max="100">
       </div>
-      <div class="toggle">
-        <label>LLM nâng cao</label>
-        <div class="switch">
-          <input type="checkbox" id="llmToggle">
-          <span class="slider"></span>
-        </div>
-      </div>
+      <button class="btn-list" id="listBtn">Danh sach</button>
     </div>
   </div>
 
   <div class="facets-panel" id="facetsPanel" style="display:none;">
     <div class="facets-header">
-      <h3>Bộ lọc</h3>
-      <button class="facets-clear" id="clearFilters" style="display:none;">Xoá bộ lọc</button>
+      <h3>Bo loc</h3>
+      <button class="facets-clear" id="clearFilters" style="display:none;">Xoa bo loc</button>
     </div>
     <div class="facet-groups" id="facetGroups"></div>
     <div class="active-filters" id="activeFilters" style="display:none;"></div>
@@ -479,32 +440,51 @@
 
   <div class="filter-bar" id="filterBar" style="display:none;">
     <div class="result-count">
-      <strong id="resultCount">0</strong> kết quả
+      <strong id="resultCount">0</strong> ket qua
     </div>
     <div class="control-group">
-      <label>Sắp xếp:</label>
+      <label>Sap xep:</label>
       <select id="sortBy">
-        <option value="relevance">Độ liên quan</option>
-        <option value="date_desc">Ngày (mới nhất)</option>
-        <option value="date_asc">Ngày (cũ nhất)</option>
+        <option value="relevance">Do lien quan</option>
+        <option value="date_desc">Ngay (moi nhat)</option>
+        <option value="date_asc">Ngay (cu nhat)</option>
       </select>
     </div>
   </div>
 
   <div id="status"></div>
   <div class="results" id="results">
-    <div class="empty-state">Nhập từ khóa và nhấn "Tìm kiếm" để bắt đầu.</div>
+    <div class="empty-state">Nhap tu khoa va nhan "Tim kiem" de bat dau.</div>
   </div>
 </div>
 
 <script>
 const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
 const API_BASE = window.location.origin;
 
+let currentMode = 'scene'; // 'scene' or 'content'
 let allHits = [];
 let allFacets = null;
-let activeFilters = {};  // { category: {value, scene_ids}, author: {value, scene_ids}, ... }
+let activeFilters = {};
 let lastQuery = '';
+
+// Mode tabs
+$$('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.mode-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMode = tab.dataset.mode;
+    // Reset state
+    allHits = [];
+    allFacets = null;
+    activeFilters = {};
+    $('#facetsPanel').style.display = 'none';
+    $('#filterBar').style.display = 'none';
+    $('#status').innerHTML = '';
+    $('#results').innerHTML = '<div class="empty-state">Nhap tu khoa va nhan "Tim kiem" de bat dau.</div>';
+  });
+});
 
 $('#queryInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') doSearch();
@@ -512,6 +492,7 @@ $('#queryInput').addEventListener('keydown', (e) => {
 $('#searchBtn').addEventListener('click', doSearch);
 $('#sortBy').addEventListener('change', renderHits);
 $('#clearFilters').addEventListener('click', clearAllFilters);
+$('#listBtn').addEventListener('click', doList);
 
 async function doSearch() {
   const query = $('#queryInput').value.trim();
@@ -522,16 +503,15 @@ async function doSearch() {
 
   const type = $('#searchType').value;
   const k = parseInt($('#topK').value) || 10;
-  const useLLM = $('#llmToggle').checked;
 
   const resultsEl = $('#results');
   const statusEl = $('#status');
   statusEl.innerHTML = '';
-  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Đang tìm kiếm...</div></div>';
+  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Dang tim kiem...</div></div>';
 
   try {
     const params = new URLSearchParams({ query_text: query, k: k });
-    const endpoint = useLLM ? `${API_BASE}/v1/search/${type}?${params}&llm=true` : `${API_BASE}/v1/search/${type}?${params}`;
+    const endpoint = `${API_BASE}/v1/search/${currentMode}/${type}?${params}`;
     const resp = await fetch(endpoint);
 
     if (!resp.ok) {
@@ -550,24 +530,65 @@ async function doSearch() {
     renderHits();
   } catch (e) {
     resultsEl.innerHTML = '';
-    statusEl.innerHTML = `<div class="error-msg">${e.message}</div>`;
+    statusEl.innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
     $('#filterBar').style.display = 'none';
     $('#facetsPanel').style.display = 'none';
   }
 }
 
+async function doList() {
+  const resultsEl = $('#results');
+  const statusEl = $('#status');
+  statusEl.innerHTML = '';
+  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Dang tai danh sach...</div></div>';
+  $('#facetsPanel').style.display = 'none';
+
+  try {
+    const endpoint = `${API_BASE}/v1/search/${currentMode}/list?limit=100`;
+    const resp = await fetch(endpoint);
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const items = data.items || [];
+
+    $('#filterBar').style.display = 'flex';
+    $('#resultCount').textContent = items.length;
+
+    if (items.length === 0) {
+      resultsEl.innerHTML = '<div class="empty-state">Chua co du lieu nao trong he thong.</div>';
+      return;
+    }
+
+    if (currentMode === 'scene') {
+      allHits = items.map(r => ({...r, score: 0}));
+      renderHits();
+    } else {
+      allHits = items.map(r => ({...r, score: 0}));
+      renderHits();
+    }
+  } catch (e) {
+    resultsEl.innerHTML = '';
+    statusEl.innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+    $('#filterBar').style.display = 'none';
+  }
+}
+
 async function doFilterSearch() {
-  const sceneIds = getFilteredSceneIds();
+  const sceneIds = getFilteredIds();
   if (!sceneIds || sceneIds.length === 0) return;
 
   const k = parseInt($('#topK').value) || 10;
   const resultsEl = $('#results');
   const statusEl = $('#status');
   statusEl.innerHTML = '';
-  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Đang lọc...</div></div>';
+  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>Dang loc...</div></div>';
 
   try {
-    const resp = await fetch(`${API_BASE}/v1/search/filter`, {
+    const resp = await fetch(`${API_BASE}/v1/search/scene/filter`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query_text: lastQuery, scene_ids: sceneIds, k: k }),
@@ -580,22 +601,20 @@ async function doFilterSearch() {
 
     const data = await resp.json();
     allHits = data.hits || [];
-
     renderHits();
   } catch (e) {
     resultsEl.innerHTML = '';
-    statusEl.innerHTML = `<div class="error-msg">${e.message}</div>`;
+    statusEl.innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
   }
 }
 
-function getFilteredSceneIds() {
+function getFilteredIds() {
   const keys = Object.keys(activeFilters);
   if (keys.length === 0) return null;
 
-  // Intersection of scene_ids across all active filters
   let result = null;
   for (const key of keys) {
-    const ids = new Set(activeFilters[key].scene_ids);
+    const ids = new Set(activeFilters[key].ids);
     if (result === null) {
       result = ids;
     } else {
@@ -606,27 +625,23 @@ function getFilteredSceneIds() {
 }
 
 const FACET_LABELS = {
-  category: 'Danh mục',
-  created_date: 'Ngày tạo',
-  author: 'Tác giả',
+  category: 'Danh muc',
+  created_date: 'Ngay tao',
+  author: 'Tac gia',
 };
 
 function renderFacets() {
   const panel = $('#facetsPanel');
   const groupsEl = $('#facetGroups');
 
-  if (!allFacets) {
-    panel.style.display = 'none';
-    return;
-  }
+  if (!allFacets) { panel.style.display = 'none'; return; }
 
-  const facetKeys = ['category', 'created_date', 'author'];
+  const facetKeys = currentMode === 'scene'
+    ? ['category', 'created_date', 'author']
+    : ['category', 'author'];
   const hasFacets = facetKeys.some(k => allFacets[k] && allFacets[k].length > 0);
 
-  if (!hasFacets) {
-    panel.style.display = 'none';
-    return;
-  }
+  if (!hasFacets) { panel.style.display = 'none'; return; }
 
   panel.style.display = 'block';
 
@@ -636,14 +651,16 @@ function renderFacets() {
     if (items.length === 0) continue;
 
     html += `<div class="facet-group">
-      <div class="facet-group-title">${FACET_LABELS[key]}</div>
+      <div class="facet-group-title">${FACET_LABELS[key] || key}</div>
       <div class="facet-chips">`;
 
     for (const item of items) {
+      const idKey = item.scene_ids ? 'scene_ids' : 'content_ids';
+      const ids = item[idKey] || [];
       const isActive = activeFilters[key] && activeFilters[key].value === item.value;
       html += `<div class="facet-chip ${isActive ? 'active' : ''}"
         data-field="${key}" data-value="${esc(item.value)}"
-        data-ids='${JSON.stringify(item.scene_ids)}'>
+        data-ids='${JSON.stringify(ids)}'>
         ${esc(item.value)} <span class="facet-count">${item.count}</span>
       </div>`;
     }
@@ -652,12 +669,9 @@ function renderFacets() {
   }
 
   groupsEl.innerHTML = html;
-
-  // Attach click handlers
   groupsEl.querySelectorAll('.facet-chip').forEach(chip => {
     chip.addEventListener('click', () => toggleFacet(chip));
   });
-
   renderActiveFilters();
 }
 
@@ -669,10 +683,9 @@ function toggleFacet(chip) {
   if (activeFilters[field] && activeFilters[field].value === value) {
     delete activeFilters[field];
   } else {
-    activeFilters[field] = { value, scene_ids: ids };
+    activeFilters[field] = { value, ids };
   }
 
-  // Update chip states
   $('#facetGroups').querySelectorAll('.facet-chip').forEach(c => {
     const f = c.dataset.field;
     const v = c.dataset.value;
@@ -681,9 +694,9 @@ function toggleFacet(chip) {
 
   renderActiveFilters();
 
-  if (Object.keys(activeFilters).length > 0) {
+  if (currentMode === 'scene' && Object.keys(activeFilters).length > 0) {
     doFilterSearch();
-  } else {
+  } else if (Object.keys(activeFilters).length === 0) {
     doSearch();
   }
 }
@@ -703,7 +716,7 @@ function renderActiveFilters() {
   el.style.display = 'flex';
   el.innerHTML = keys.map(key =>
     `<span class="active-filter-tag">
-      ${FACET_LABELS[key]}: ${esc(activeFilters[key].value)}
+      ${FACET_LABELS[key] || key}: ${esc(activeFilters[key].value)}
       <span class="remove-filter" data-field="${key}">&times;</span>
     </span>`
   ).join('');
@@ -713,13 +726,10 @@ function renderActiveFilters() {
       e.stopPropagation();
       const field = btn.dataset.field;
       delete activeFilters[field];
-
       $('#facetGroups').querySelectorAll('.facet-chip').forEach(c => {
         if (c.dataset.field === field) c.classList.remove('active');
       });
-
       renderActiveFilters();
-
       if (Object.keys(activeFilters).length > 0) {
         doFilterSearch();
       } else {
@@ -740,43 +750,74 @@ function renderHits() {
   const resultsEl = $('#results');
   let hits = [...allHits];
 
-  // Sort
   const sortBy = $('#sortBy').value;
-  if (sortBy === 'date_desc') {
-    hits.sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
-  } else if (sortBy === 'date_asc') {
-    hits.sort((a, b) => (a.created_date || '').localeCompare(b.created_date || ''));
+  if (currentMode === 'scene') {
+    if (sortBy === 'date_desc') hits.sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
+    else if (sortBy === 'date_asc') hits.sort((a, b) => (a.created_date || '').localeCompare(b.created_date || ''));
+  } else {
+    if (sortBy === 'date_desc') hits.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+    else if (sortBy === 'date_asc') hits.sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
   }
 
   $('#resultCount').textContent = hits.length;
 
   if (hits.length === 0) {
-    resultsEl.innerHTML = '<div class="empty-state">Không tìm thấy kết quả phù hợp.</div>';
+    resultsEl.innerHTML = '<div class="empty-state">Khong tim thay ket qua phu hop.</div>';
     return;
   }
 
-  resultsEl.innerHTML = hits.map((h, i) => {
-    const timeRange = formatTime(h.start_time_sec) + ' — ' + formatTime(h.end_time_sec);
-    const tags = (h.video_tags || []).map(t => `<span class="meta-tag">${esc(t)}</span>`).join('');
-    const date = h.created_date || '';
+  if (currentMode === 'scene') {
+    resultsEl.innerHTML = hits.map(h => renderSceneCard(h)).join('');
+  } else {
+    resultsEl.innerHTML = hits.map(h => renderContentCard(h)).join('');
+  }
+}
 
-    return `
-      <div class="scene-card">
-        <div class="card-header">
-          <div class="video-title">${esc(h.video_title)}</div>
-          <div class="score">${h.score.toFixed(4)}</div>
-        </div>
-        <div class="scene-desc">${esc(h.scene_description)}</div>
-        <div class="card-meta">
-          <span class="meta-time">${timeRange}</span>
-          ${h.category ? `<span class="meta-sep">|</span><span class="meta-category">${esc(h.category)}</span>` : ''}
-          ${h.author ? `<span class="meta-sep">|</span><span class="meta-author">${esc(h.author)}</span>` : ''}
-          ${date ? `<span class="meta-sep">|</span><span class="meta-date">${date}</span>` : ''}
-          ${tags ? `<span class="meta-sep">|</span>${tags}` : ''}
-        </div>
+function renderSceneCard(h) {
+  const timeRange = formatTime(h.start_time_sec) + ' — ' + formatTime(h.end_time_sec);
+  const tags = (h.video_tags || []).map(t => `<span class="meta-tag">${esc(t)}</span>`).join('');
+  const date = h.created_date || '';
+  const scoreHtml = h.score ? `<div class="score">${h.score.toFixed(4)}</div>` : '';
+
+  return `
+    <div class="scene-card">
+      <div class="card-header">
+        <div class="video-title">${esc(h.video_title)}</div>
+        ${scoreHtml}
       </div>
-    `;
-  }).join('');
+      <div class="scene-desc">${esc(h.scene_description)}</div>
+      <div class="card-meta">
+        <span class="meta-time">${timeRange}</span>
+        ${h.category ? `<span class="meta-sep">|</span><span class="meta-category">${esc(h.category)}</span>` : ''}
+        ${h.author ? `<span class="meta-sep">|</span><span class="meta-author">${esc(h.author)}</span>` : ''}
+        ${date ? `<span class="meta-sep">|</span><span class="meta-date">${date}</span>` : ''}
+        ${tags ? `<span class="meta-sep">|</span>${tags}` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderContentCard(h) {
+  const tags = (h.tags || []).map(t => `<span class="meta-tag">${esc(t)}</span>`).join('');
+  const duration = h.duration_sec ? formatDuration(h.duration_sec) : '';
+  const scoreHtml = h.score ? `<div class="score">${h.score.toFixed(4)}</div>` : '';
+
+  return `
+    <div class="content-card">
+      <div class="card-header">
+        <div class="video-title">${esc(h.title)}</div>
+        ${scoreHtml}
+      </div>
+      <div class="content-desc">${esc(h.description)}</div>
+      <div class="card-meta">
+        ${duration ? `<span class="meta-duration">${duration}</span>` : ''}
+        ${h.category ? `<span class="meta-sep">|</span><span class="meta-category">${esc(h.category)}</span>` : ''}
+        ${h.author ? `<span class="meta-sep">|</span><span class="meta-author">${esc(h.author)}</span>` : ''}
+        ${h.created_at ? `<span class="meta-sep">|</span><span class="meta-date">${h.created_at}</span>` : ''}
+        ${tags ? `<span class="meta-sep">|</span>${tags}` : ''}
+      </div>
+    </div>
+  `;
 }
 
 function formatTime(sec) {
@@ -784,6 +825,15 @@ function formatTime(sec) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function formatDuration(sec) {
+  if (!sec) return '';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  if (h > 0) return `${h}h${m.toString().padStart(2,'0')}m`;
+  return `${m}m${s.toString().padStart(2,'0')}s`;
 }
 
 function esc(s) {

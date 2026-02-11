@@ -2,10 +2,10 @@ import json
 
 from fastapi import APIRouter, HTTPException
 
-from api.models.scene import IngestRequest, IngestResponse
+from api.models.scene import ContentIngestRequest, IngestRequest, IngestResponse
 from src.config import settings
 
-router = APIRouter(prefix="/v1/scenes", tags=["ingest"])
+router = APIRouter(prefix="/v1", tags=["ingest"])
 
 
 def _ingest_opensearch(req: IngestRequest) -> IngestResponse:
@@ -77,6 +77,7 @@ def _ingest_milvus(req: IngestRequest) -> IngestResponse:
             "category": scene.category,
             "created_date": scene.created_date,
             "author": scene.author,
+            "bm25_text": combined_text,
         })
 
     try:
@@ -94,8 +95,55 @@ def _ingest_milvus(req: IngestRequest) -> IngestResponse:
         raise HTTPException(status_code=502, detail=f"Milvus ingest error: {e}")
 
 
-@router.post("/ingest", response_model=IngestResponse)
+@router.post("/scenes/ingest", response_model=IngestResponse)
 def ingest_scenes(req: IngestRequest):
     if settings.backend == "milvus":
         return _ingest_milvus(req)
     return _ingest_opensearch(req)
+
+
+def _ingest_milvus_content(req: ContentIngestRequest) -> IngestResponse:
+    from src.milvus_client import get_embedding_fn, get_milvus_client
+
+    client = get_milvus_client()
+    embedding_fn = get_embedding_fn()
+
+    combined_texts = []
+    docs = []
+    for item in req.contents:
+        tags_text = " ".join(item.tags)
+        combined_text = f"{item.title} {item.description} {tags_text}".strip()
+        combined_texts.append(combined_text)
+
+        docs.append({
+            "content_id": item.content_id,
+            "title": item.title,
+            "description": item.description,
+            "tags": json.dumps(item.tags),
+            "duration_sec": item.duration_sec,
+            "created_at": item.created_at,
+            "category": item.category,
+            "author": item.author,
+            "bm25_text": combined_text,
+        })
+
+    try:
+        vectors = embedding_fn.encode_documents(combined_texts)
+        for i, doc in enumerate(docs):
+            doc["embedding"] = vectors[i]
+
+        res = client.upsert(
+            collection_name=settings.milvus_content_collection_name,
+            data=docs,
+        )
+        client.flush(collection_name=settings.milvus_content_collection_name)
+        return IngestResponse(indexed=res["upsert_count"])
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Milvus content ingest error: {e}")
+
+
+@router.post("/contents/ingest", response_model=IngestResponse)
+def ingest_contents(req: ContentIngestRequest):
+    if settings.backend != "milvus":
+        raise HTTPException(status_code=501, detail="Content ingest only supports Milvus backend")
+    return _ingest_milvus_content(req)

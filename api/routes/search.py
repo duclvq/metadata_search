@@ -1,13 +1,20 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from api.models.search import Facets, SceneHit, SearchResponse
+from api.models.search import (
+    ContentFacets,
+    ContentHit,
+    ContentSearchResponse,
+    Facets,
+    SceneHit,
+    SearchResponse,
+)
 from src.config import settings
 
 router = APIRouter(prefix="/v1/search", tags=["search"])
 
 
-# ---- OpenSearch helpers ----
+# ---- OpenSearch helpers (scene only) ----
 
 def _parse_opensearch_hits(raw_hits: list[dict]) -> list[SceneHit]:
     results = []
@@ -70,48 +77,163 @@ def _opensearch_hybrid(query_text: str, k: int) -> SearchResponse:
     return SearchResponse(total=total, hits=hits)
 
 
-# ---- Milvus helpers ----
+# ---- Milvus scene helpers ----
 
-def _milvus_search(query_text: str, k: int, filter_expr: str | None = None) -> SearchResponse:
+def _milvus_scene_semantic(query_text: str, k: int, filter_expr: str | None = None) -> SearchResponse:
     from src.milvus_client import get_embedding_fn, get_milvus_client
-    from src.milvus_queries import search_semantic
+    from src.milvus_queries import search_scene_semantic
 
     client = get_milvus_client()
     embedding_fn = get_embedding_fn()
-
     try:
-        result = search_semantic(client, embedding_fn, query_text, k, filter_expr)
+        result = search_scene_semantic(client, embedding_fn, query_text, k, filter_expr)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
-
     hits = [SceneHit(**h) for h in result["hits"]]
     facets = Facets(**result["facets"])
     return SearchResponse(total=result["total"], hits=hits, facets=facets)
 
 
-# ---- Endpoints ----
+def _milvus_scene_fulltext(query_text: str, k: int) -> SearchResponse:
+    from src.milvus_client import get_milvus_client
+    from src.milvus_queries import search_scene_fulltext
 
-@router.get("/semantic", response_model=SearchResponse)
-def semantic_search(
+    client = get_milvus_client()
+    try:
+        result = search_scene_fulltext(client, query_text, k)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
+    hits = [SceneHit(**h) for h in result["hits"]]
+    facets = Facets(**result["facets"])
+    return SearchResponse(total=result["total"], hits=hits, facets=facets)
+
+
+def _milvus_scene_hybrid(query_text: str, k: int) -> SearchResponse:
+    from src.milvus_client import get_embedding_fn, get_milvus_client
+    from src.milvus_queries import search_scene_hybrid
+
+    client = get_milvus_client()
+    embedding_fn = get_embedding_fn()
+    try:
+        result = search_scene_hybrid(client, embedding_fn, query_text, k)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
+    hits = [SceneHit(**h) for h in result["hits"]]
+    facets = Facets(**result["facets"])
+    return SearchResponse(total=result["total"], hits=hits, facets=facets)
+
+
+# ---- Milvus content helpers ----
+
+def _milvus_content_semantic(query_text: str, k: int) -> ContentSearchResponse:
+    from src.milvus_client import get_embedding_fn, get_milvus_client
+    from src.milvus_queries import search_content_semantic
+
+    client = get_milvus_client()
+    embedding_fn = get_embedding_fn()
+    try:
+        result = search_content_semantic(client, embedding_fn, query_text, k)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
+    hits = [ContentHit(**h) for h in result["hits"]]
+    facets = ContentFacets(**result["facets"])
+    return ContentSearchResponse(total=result["total"], hits=hits, facets=facets)
+
+
+def _milvus_content_fulltext(query_text: str, k: int) -> ContentSearchResponse:
+    from src.milvus_client import get_milvus_client
+    from src.milvus_queries import search_content_fulltext
+
+    client = get_milvus_client()
+    try:
+        result = search_content_fulltext(client, query_text, k)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
+    hits = [ContentHit(**h) for h in result["hits"]]
+    facets = ContentFacets(**result["facets"])
+    return ContentSearchResponse(total=result["total"], hits=hits, facets=facets)
+
+
+def _milvus_content_hybrid(query_text: str, k: int) -> ContentSearchResponse:
+    from src.milvus_client import get_embedding_fn, get_milvus_client
+    from src.milvus_queries import search_content_hybrid
+
+    client = get_milvus_client()
+    embedding_fn = get_embedding_fn()
+    try:
+        result = search_content_hybrid(client, embedding_fn, query_text, k)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Milvus error: {e}")
+    hits = [ContentHit(**h) for h in result["hits"]]
+    facets = ContentFacets(**result["facets"])
+    return ContentSearchResponse(total=result["total"], hits=hits, facets=facets)
+
+
+# ---- Scene endpoints ----
+
+@router.get("/scene/semantic", response_model=SearchResponse)
+def scene_semantic_search(
     query_text: str = Query(..., min_length=1),
     k: int = Query(default=10, ge=1, le=100),
 ):
     if settings.backend == "milvus":
-        return _milvus_search(query_text, k)
+        return _milvus_scene_semantic(query_text, k)
     return _opensearch_semantic(query_text, k)
 
 
-@router.get("/hybrid", response_model=SearchResponse)
-def hybrid_search(
+@router.get("/scene/fulltext", response_model=SearchResponse)
+def scene_fulltext_search(
+    query_text: str = Query(..., min_length=1),
+    k: int = Query(default=10, ge=1, le=100),
+):
+    if settings.backend != "milvus":
+        raise HTTPException(status_code=501, detail="Full-text search only supports Milvus backend")
+    return _milvus_scene_fulltext(query_text, k)
+
+
+@router.get("/scene/hybrid", response_model=SearchResponse)
+def scene_hybrid_search(
     query_text: str = Query(..., min_length=1),
     k: int = Query(default=10, ge=1, le=100),
 ):
     if settings.backend == "milvus":
-        return _milvus_search(query_text, k)
+        return _milvus_scene_hybrid(query_text, k)
     return _opensearch_hybrid(query_text, k)
 
 
-# ---- Filter API ----
+# ---- Content endpoints ----
+
+@router.get("/content/semantic", response_model=ContentSearchResponse)
+def content_semantic_search(
+    query_text: str = Query(..., min_length=1),
+    k: int = Query(default=10, ge=1, le=100),
+):
+    if settings.backend != "milvus":
+        raise HTTPException(status_code=501, detail="Content search only supports Milvus backend")
+    return _milvus_content_semantic(query_text, k)
+
+
+@router.get("/content/fulltext", response_model=ContentSearchResponse)
+def content_fulltext_search(
+    query_text: str = Query(..., min_length=1),
+    k: int = Query(default=10, ge=1, le=100),
+):
+    if settings.backend != "milvus":
+        raise HTTPException(status_code=501, detail="Content search only supports Milvus backend")
+    return _milvus_content_fulltext(query_text, k)
+
+
+@router.get("/content/hybrid", response_model=ContentSearchResponse)
+def content_hybrid_search(
+    query_text: str = Query(..., min_length=1),
+    k: int = Query(default=10, ge=1, le=100),
+):
+    if settings.backend != "milvus":
+        raise HTTPException(status_code=501, detail="Content search only supports Milvus backend")
+    return _milvus_content_hybrid(query_text, k)
+
+
+# ---- Scene filter ----
 
 class FilterRequest(BaseModel):
     query_text: str = Field(..., min_length=1)
@@ -119,13 +241,107 @@ class FilterRequest(BaseModel):
     k: int = Field(default=10, ge=1, le=100)
 
 
-@router.post("/filter", response_model=SearchResponse)
-def filter_search(req: FilterRequest):
+@router.post("/scene/filter", response_model=SearchResponse)
+def scene_filter_search(req: FilterRequest):
     if settings.backend != "milvus":
         raise HTTPException(status_code=501, detail="Filter API only supports Milvus backend")
-
-    # Build Milvus filter expression: scene_id in ["id1", "id2", ...]
     ids_str = ", ".join(f'"{sid}"' for sid in req.scene_ids)
     filter_expr = f"scene_id in [{ids_str}]"
+    return _milvus_scene_semantic(req.query_text, req.k, filter_expr)
 
-    return _milvus_search(req.query_text, req.k, filter_expr)
+
+# ---- Backward-compatible aliases (hidden from docs) ----
+
+@router.get("/semantic", response_model=SearchResponse, include_in_schema=False)
+def semantic_search_legacy(
+    query_text: str = Query(..., min_length=1),
+    k: int = Query(default=10, ge=1, le=100),
+):
+    return scene_semantic_search(query_text, k)
+
+
+@router.get("/hybrid", response_model=SearchResponse, include_in_schema=False)
+def hybrid_search_legacy(
+    query_text: str = Query(..., min_length=1),
+    k: int = Query(default=10, ge=1, le=100),
+):
+    return scene_hybrid_search(query_text, k)
+
+
+@router.post("/filter", response_model=SearchResponse, include_in_schema=False)
+def filter_search_legacy(req: FilterRequest):
+    return scene_filter_search(req)
+
+
+# ---- List endpoints ----
+
+@router.get("/scene/list")
+def list_scenes(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=1000),
+):
+    """List scenes currently indexed in the vector DB."""
+    if settings.backend != "milvus":
+        raise HTTPException(status_code=501, detail="List API only supports Milvus backend")
+
+    from src.milvus_client import get_milvus_client
+    from src.milvus_queries import SCENE_OUTPUT_FIELDS
+
+    client = get_milvus_client()
+    results = client.query(
+        collection_name=settings.milvus_collection_name,
+        filter="",
+        output_fields=SCENE_OUTPUT_FIELDS,
+        limit=limit,
+        offset=skip,
+    )
+
+    import json
+    items = []
+    for r in results:
+        tags = r.get("video_tags", "[]")
+        if isinstance(tags, str):
+            try:
+                tags = json.loads(tags)
+            except Exception:
+                tags = []
+        r["video_tags"] = tags
+        items.append(r)
+
+    return {"total": len(items), "items": items}
+
+
+@router.get("/content/list")
+def list_contents(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=1000),
+):
+    """List contents (videos) currently indexed in the vector DB."""
+    if settings.backend != "milvus":
+        raise HTTPException(status_code=501, detail="List API only supports Milvus backend")
+
+    from src.milvus_client import get_milvus_client
+    from src.milvus_queries import CONTENT_OUTPUT_FIELDS
+
+    client = get_milvus_client()
+    results = client.query(
+        collection_name=settings.milvus_content_collection_name,
+        filter="",
+        output_fields=CONTENT_OUTPUT_FIELDS,
+        limit=limit,
+        offset=skip,
+    )
+
+    import json
+    items = []
+    for r in results:
+        tags = r.get("tags", "[]")
+        if isinstance(tags, str):
+            try:
+                tags = json.loads(tags)
+            except Exception:
+                tags = []
+        r["tags"] = tags
+        items.append(r)
+
+    return {"total": len(items), "items": items}

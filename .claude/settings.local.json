@@ -18,7 +18,8 @@
       "Bash(powershell -Command \"Start-Sleep -Seconds 30; curl.exe -s http://localhost:9200/_plugins/_ml/tasks/LogjRpwBgZqRe2XBa6TI\")",
       "Bash(pip install:*)",
       "Read(//d/**)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(xargs ls:*)"
     ]
   }
 }

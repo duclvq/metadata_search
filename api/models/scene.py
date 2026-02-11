@@ -27,6 +27,21 @@ class IngestRequest(BaseModel):
     scenes: list[SceneIngestItem] = Field(..., min_length=1)
 
 
+class ContentIngestItem(BaseModel):
+    content_id: str
+    title: str
+    description: str = ""
+    tags: list[str] = []
+    duration_sec: float = 0.0
+    created_at: str = ""
+    category: str = ""
+    author: str = ""
+
+
+class ContentIngestRequest(BaseModel):
+    contents: list[ContentIngestItem] = Field(..., min_length=1)
+
+
 class IngestResponse(BaseModel):
     indexed: int
     errors: list[str] = []

@@ -104,6 +104,66 @@ def transform_mongo_doc(doc: dict) -> list[dict]:
     return scenes
 
 
+def transform_mongo_doc_to_content(doc: dict) -> dict | None:
+    """
+    Transform a MongoDB video_queue document into a single
+    content-level dict for the contents collection.
+
+    Returns None if the document is not completed.
+    """
+    if doc.get("status") != "completed":
+        return None
+
+    enriched = doc.get("enriched_data", {})
+    video_id = doc.get("unique_id", str(doc.get("_id", "")))
+    video_title = doc.get("title", "")
+
+    # Full audio transcription as description
+    description = enriched.get("audio", {}).get("metadata", {}).get("transcription", "")
+    if not description:
+        description = enriched.get("audio", {}).get("transcription", "")
+
+    video_tags = doc.get("video_tags", [])
+
+    # Duration
+    video_info = enriched.get("video_info", {})
+    duration_sec = doc.get("video_duration_sec")
+    if duration_sec is None:
+        dur_str = video_info.get("duration", "")
+        if dur_str and ":" in dur_str:
+            try:
+                duration_sec = parse_time_to_sec(dur_str)
+            except Exception:
+                duration_sec = 0.0
+    if duration_sec is None:
+        duration_sec = 0.0
+
+    created_at = doc.get("video_created_at")
+    if hasattr(created_at, "isoformat"):
+        created_at = created_at.isoformat()
+    created_at = created_at or ""
+
+    # Derive category and author from first scene (or empty)
+    scene_list = enriched.get("scene_list", [])
+    category = ""
+    author = ""
+    if scene_list:
+        first_scene = scene_list[0]
+        category = first_scene.get("category", first_scene.get("video_type", ""))
+        author = first_scene.get("author", "")
+
+    return {
+        "content_id": video_id,
+        "title": video_title,
+        "description": description,
+        "tags": json.dumps(video_tags),
+        "duration_sec": duration_sec,
+        "created_at": created_at,
+        "category": category,
+        "author": author,
+    }
+
+
 def get_scene_ids_from_doc(doc: dict) -> list[str]:
     """Extract all scene_ids from a MongoDB document."""
     enriched = doc.get("enriched_data", {})
@@ -125,6 +185,20 @@ def sync_upsert_scenes(scenes: list[dict]) -> int:
     if settings.backend == "milvus":
         return _upsert_milvus(scenes)
     return _upsert_opensearch(scenes)
+
+
+def sync_upsert_content(content: dict) -> int:
+    """Upsert a single content document to the contents collection. Returns 1 on success."""
+    if not content or settings.backend != "milvus":
+        return 0
+    return _upsert_milvus_content(content)
+
+
+def sync_delete_content(content_id: str) -> int:
+    """Delete a content document from the contents collection."""
+    if not content_id or settings.backend != "milvus":
+        return 0
+    return _delete_milvus_content(content_id)
 
 
 def sync_delete_scenes(scene_ids: list[str]) -> int:
@@ -175,6 +249,7 @@ def _upsert_milvus(scenes: list[dict]) -> int:
             "category": scene.get("category", ""),
             "created_date": scene.get("created_date", ""),
             "author": scene.get("author", ""),
+            "bm25_text": combined_text,
         })
 
     vectors = embedding_fn.encode_documents(combined_texts)
@@ -204,6 +279,53 @@ def _delete_milvus(scene_ids: list[str]) -> int:
     client.flush(collection_name=settings.milvus_collection_name)
     logger.info("Milvus delete: %d scenes", len(scene_ids))
     return len(scene_ids)
+
+
+def _upsert_milvus_content(content: dict) -> int:
+    from src.milvus_client import get_embedding_fn, get_milvus_client
+
+    client = get_milvus_client()
+    embedding_fn = get_embedding_fn()
+
+    # Build combined text for dense embedding: title + description + tags
+    tags_list = content.get("tags", "[]")
+    if isinstance(tags_list, str):
+        try:
+            tags_list = json.loads(tags_list)
+        except Exception:
+            tags_list = []
+    tags_text = " ".join(tags_list) if isinstance(tags_list, list) else ""
+
+    combined_text = f"{content['title']} {content['description']} {tags_text}".strip()
+
+    # BM25 text field (Milvus auto-generates sparse vector)
+    content["bm25_text"] = combined_text
+
+    vectors = embedding_fn.encode_documents([combined_text])
+    content["embedding"] = vectors[0]
+
+    res = client.upsert(
+        collection_name=settings.milvus_content_collection_name,
+        data=[content],
+    )
+    client.flush(collection_name=settings.milvus_content_collection_name)
+    count = res.get("upsert_count", 1)
+    logger.info("Milvus content upsert: content_id=%s", content["content_id"])
+    return count
+
+
+def _delete_milvus_content(content_id: str) -> int:
+    from src.milvus_client import get_milvus_client
+
+    client = get_milvus_client()
+    filter_expr = f'content_id in ["{content_id}"]'
+    client.delete(
+        collection_name=settings.milvus_content_collection_name,
+        filter=filter_expr,
+    )
+    client.flush(collection_name=settings.milvus_content_collection_name)
+    logger.info("Milvus content delete: content_id=%s", content_id)
+    return 1
 
 
 # ---------------------------------------------------------------------------

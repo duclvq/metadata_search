@@ -27,7 +27,7 @@ def parse_time_to_sec(time_str: str) -> float:
     return h * 3600 + m * 60 + s
 
 
-def transform(doc: dict) -> list[dict]:
+def transform_scenes(doc: dict) -> list[dict]:
     """Chuyển 1 document (format nguồn) thành danh sách SceneIngestItem cho API."""
     enriched = doc["enriched_data"]
     scenes = []
@@ -59,6 +59,32 @@ def transform(doc: dict) -> list[dict]:
     return scenes
 
 
+def transform_content(doc: dict) -> dict:
+    """Chuyển 1 document (format nguồn) thành ContentIngestItem cho API."""
+    enriched = doc.get("enriched_data", {})
+    description = enriched.get("audio", {}).get("summary", "")
+    if not description:
+        description = enriched.get("audio", {}).get("transcription", "")
+
+    scene_list = enriched.get("scene_list", [])
+    category = ""
+    author = ""
+    if scene_list:
+        category = scene_list[0].get("category", "")
+        author = scene_list[0].get("author", "")
+
+    return {
+        "content_id": doc["unique_id"],
+        "title": doc.get("title", ""),
+        "description": description,
+        "tags": doc.get("video_tags", []),
+        "duration_sec": doc.get("video_duration_sec") or 0.0,
+        "created_at": doc.get("video_created_at", ""),
+        "category": category,
+        "author": author,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Ingest data lên Metadata Search API")
     parser.add_argument("--file", type=str, default=str(DEFAULT_FILE), help="Đường dẫn file JSON")
@@ -81,7 +107,7 @@ def main():
     # Transform tất cả documents thành scenes
     all_scenes = []
     for doc in documents:
-        all_scenes.extend(transform(doc))
+        all_scenes.extend(transform_scenes(doc))
 
     print(f"Tổng cộng: {len(documents)} video, {len(all_scenes)} scene")
 

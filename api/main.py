@@ -55,7 +55,7 @@ app = FastAPI(
 
 app.include_router(ingest.router)
 app.include_router(search.router)
-app.include_router(crud.router)
+# app.include_router(crud.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

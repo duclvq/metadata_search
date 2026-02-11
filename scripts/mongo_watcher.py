@@ -41,9 +41,12 @@ from src.config import settings
 from src.mongo_client import get_collection, get_mongo_client
 from src.sync_utils import (
     get_scene_ids_from_doc,
+    sync_delete_content,
     sync_delete_scenes,
+    sync_upsert_content,
     sync_upsert_scenes,
     transform_mongo_doc,
+    transform_mongo_doc_to_content,
 )
 
 # ---------------------------------------------------------------------------
@@ -118,6 +121,7 @@ def full_sync() -> None:
     col = get_collection()
     total_videos = 0
     total_scenes = 0
+    total_contents = 0
 
     for doc in col.find({"status": "completed"}):
         scenes = transform_mongo_doc(doc)
@@ -126,7 +130,13 @@ def full_sync() -> None:
             total_scenes += len(scenes)
             total_videos += 1
 
-    logger.info("Full sync done: %d videos, %d scenes.", total_videos, total_scenes)
+        content = transform_mongo_doc_to_content(doc)
+        if content:
+            sync_upsert_content(content)
+            total_contents += 1
+
+    logger.info("Full sync done: %d videos, %d scenes, %d contents.",
+                total_videos, total_scenes, total_contents)
 
 
 # ---------------------------------------------------------------------------
@@ -166,20 +176,35 @@ def _handle_change(change: dict) -> None:
         else:
             logger.info("No scenes in doc %s — nothing to sync.", doc_id)
 
+        content = transform_mongo_doc_to_content(full_doc)
+        if content:
+            sync_upsert_content(content)
+            logger.info("Upserted content for video %s.",
+                        full_doc.get("unique_id", doc_id))
+
     elif op == "delete":
-        # On delete we don't have fullDocument.  We need to track scene_ids
-        # beforehand or query by video_id.  Since change streams don't include
-        # the deleted doc, we attempt to delete by querying vector DB for the
-        # video_id that matches the doc_key.
-        #
-        # Because we cannot recover scene_ids from a deleted doc, the watcher
-        # relies on the CRUD API delete path (which removes scenes before
-        # deleting the Mongo doc).  If someone deletes directly in Mongo,
-        # the /sync-all endpoint can be used to reconcile.
-        logger.warning(
-            "Delete detected for _id=%s.  Scene cleanup is handled "
-            "by the CRUD API; use POST /v1/videos/sync-all to reconcile "
-            "if documents were deleted directly in MongoDB.", doc_id)
+        # Try to use pre-image if enabled (MongoDB changeStreamPreAndPostImages)
+        pre_doc = change.get("fullDocumentBeforeChange")
+        if pre_doc:
+            scene_ids = get_scene_ids_from_doc(pre_doc)
+            if scene_ids:
+                deleted = sync_delete_scenes(scene_ids)
+                logger.info("Deleted %d scenes for video %s.",
+                            deleted, pre_doc.get("unique_id", doc_id))
+
+            content_id = pre_doc.get("unique_id", str(pre_doc.get("_id", "")))
+            if content_id:
+                sync_delete_content(content_id)
+                logger.info("Deleted content for video %s.", content_id)
+        else:
+            # Without pre-image we cannot recover scene_ids or content_id.
+            # The CRUD API delete path should remove scenes/contents before
+            # deleting the Mongo doc. Use /v1/videos/sync-all to reconcile.
+            logger.warning(
+                "Delete detected for _id=%s but no pre-image available. "
+                "Scene/content cleanup is handled by the CRUD API; use "
+                "POST /v1/videos/sync-all to reconcile if documents were "
+                "deleted directly in MongoDB.", doc_id)
 
     else:
         logger.debug("Ignoring operationType=%s", op)

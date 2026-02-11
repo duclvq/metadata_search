@@ -13,9 +13,12 @@ from pydantic import BaseModel, Field
 from src.mongo_client import get_collection
 from src.sync_utils import (
     get_scene_ids_from_doc,
+    sync_delete_content,
     sync_delete_scenes,
+    sync_upsert_content,
     sync_upsert_scenes,
     transform_mongo_doc,
+    transform_mongo_doc_to_content,
 )
 
 logger = logging.getLogger(__name__)
@@ -82,6 +85,10 @@ def create_video(body: dict[str, Any]):
     scenes = transform_mongo_doc(doc)
     count = sync_upsert_scenes(scenes)
 
+    content = transform_mongo_doc_to_content(doc)
+    if content:
+        sync_upsert_content(content)
+
     return SyncResult(mongo_id=mongo_id, scenes_synced=count)
 
 
@@ -147,6 +154,10 @@ def update_video(unique_id: str, body: dict[str, Any]):
     scenes = transform_mongo_doc(updated)
     count = sync_upsert_scenes(scenes)
 
+    content = transform_mongo_doc_to_content(updated)
+    if content:
+        sync_upsert_content(content)
+
     return SyncResult(mongo_id=str(existing["_id"]), scenes_synced=count)
 
 
@@ -168,6 +179,7 @@ def delete_video(unique_id: str):
     # Delete from vector DB first
     scene_ids = get_scene_ids_from_doc(doc)
     removed = sync_delete_scenes(scene_ids)
+    sync_delete_content(unique_id)
 
     # Delete from MongoDB
     col.delete_one({"_id": doc["_id"]})
@@ -197,6 +209,10 @@ def sync_video(unique_id: str):
     scenes = transform_mongo_doc(doc)
     count = sync_upsert_scenes(scenes)
 
+    content = transform_mongo_doc_to_content(doc)
+    if content:
+        sync_upsert_content(content)
+
     return SyncResult(mongo_id=str(doc["_id"]), scenes_synced=count)
 
 
@@ -210,6 +226,7 @@ def sync_all_videos():
 
     total_scenes = 0
     total_videos = 0
+    total_contents = 0
     for doc in docs:
         scenes = transform_mongo_doc(doc)
         if scenes:
@@ -217,4 +234,9 @@ def sync_all_videos():
             total_scenes += len(scenes)
             total_videos += 1
 
-    return {"videos_synced": total_videos, "scenes_synced": total_scenes}
+        content = transform_mongo_doc_to_content(doc)
+        if content:
+            sync_upsert_content(content)
+            total_contents += 1
+
+    return {"videos_synced": total_videos, "scenes_synced": total_scenes, "contents_synced": total_contents}
