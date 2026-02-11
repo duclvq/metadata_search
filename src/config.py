@@ -20,7 +20,8 @@ class Settings(BaseSettings):
     ingest_pipeline_name: str = "scene-embedding-pipeline"
 
     # --- MongoDB settings ---
-    mongo_uri: str = "mongodb://localhost:27017/?replicaSet=rs0"
+    # mongo_uri: str = "mongodb://localhost:27017/?replicaSet=rs0"
+    mongo_uri: str = "mongodb://host.docker.internal:27017/?replicaSet=rs0"
     mongo_db: str = "Metadata_Enrichment"
     mongo_collection: str = "video_queue"
     mongo_resume_token_path: str = "resume_token.json"
