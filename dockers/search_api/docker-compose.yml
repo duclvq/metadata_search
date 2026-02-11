@@ -17,5 +17,6 @@ services:
       MS_MONGO_COLLECTION: video_queue
     volumes:
       - D:\py_source\metadata_search:/app
+      - C:\Users\Administrator\.cache:/root/.cache
     command: uvicorn api.main:app --host 0.0.0.0 --port 8003 --reload
     restart: unless-stopped
