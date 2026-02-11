@@ -1,5 +1,4 @@
 version: "3.8"
-
 services:
   api:
     image: search_api
@@ -17,6 +16,6 @@ services:
       MS_MONGO_DB: Metadata_Enrichment
       MS_MONGO_COLLECTION: video_queue
     volumes:
-      - C:\Users\Administrator\metadata_search:/app
+      - D:\py_source\metadata_search:/app
     command: uvicorn api.main:app --host 0.0.0.0 --port 8003 --reload
     restart: unless-stopped

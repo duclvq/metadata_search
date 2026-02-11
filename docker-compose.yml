@@ -84,6 +84,9 @@ services:
       MS_MONGO_URI: mongodb://host.docker.internal:27017/?replicaSet=rs0
       MS_MONGO_DB: Metadata_Enrichment
       MS_MONGO_COLLECTION: video_queue
+      HF_HOME: /cache/huggingface
+    volumes:
+      - hf-cache:/cache/huggingface
     depends_on:
       milvus:
         condition: service_healthy
@@ -111,8 +114,10 @@ services:
       MS_MONGO_DB: Metadata_Enrichment
       MS_MONGO_COLLECTION: video_queue
       MS_MONGO_RESUME_TOKEN_PATH: /data/resume_token.json
+      HF_HOME: /cache/huggingface
     volumes:
       - watcher-data:/data
+      - hf-cache:/cache/huggingface
     depends_on:
       milvus:
         condition: service_healthy
@@ -125,6 +130,7 @@ volumes:
   minio-data:
   milvus-data:
   watcher-data:
+  hf-cache:
 
 networks:
   app-net:

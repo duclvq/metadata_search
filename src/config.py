@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     milvus_uri: str = "http://localhost:19530"
     milvus_collection_name: str = "scenes"
     embedding_model_name: str = "BAAI/bge-m3"
-    embedding_device: str = "cuda"
+    embedding_device: str = "cpu"
 
     model_config = {"env_prefix": "MS_", "env_file": ".env"}
 
