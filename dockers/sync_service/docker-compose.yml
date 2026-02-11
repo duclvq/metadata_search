@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  sync-db:
+    image: search_api
+    container_name: sync-db-service
+    # ports:
+    #   - "8003:8003"
+    environment:
+      MS_BACKEND: milvus
+      MS_MILVUS_URI: http://host.docker.internal:19530
+      MS_MILVUS_COLLECTION_NAME: scenes
+      MS_EMBEDDING_DIMENSION: "1024"
+      MS_EMBEDDING_MODEL_NAME: BAAI/bge-m3
+      MS_EMBEDDING_DEVICE: cuda
+      MS_MONGO_URI: mongodb://host.docker.internal:27017/?replicaSet=rs0
+      MS_MONGO_DB: Metadata_Enrichment
+      MS_MONGO_COLLECTION: video_queue
+    volumes:
+      - C:\Users\Administrator\metadata_search:/app
+    command: python -m scripts.mongo_watcher --full-sync
+
+    restart: unless-stopped
