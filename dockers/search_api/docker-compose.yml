@@ -11,12 +11,12 @@ services:
       MS_MILVUS_COLLECTION_NAME: scenes
       MS_EMBEDDING_DIMENSION: "1024"
       MS_EMBEDDING_MODEL_NAME: BAAI/bge-m3
-      MS_EMBEDDING_DEVICE: cuda
+      MS_EMBEDDING_DEVICE: cpu
       MS_MONGO_URI: mongodb://host.docker.internal:27017/?replicaSet=rs0
       MS_MONGO_DB: Metadata_Enrichment
       MS_MONGO_COLLECTION: video_queue
     volumes:
-      - D:\py_source\metadata_search:/app
+      - C:\Users\Administrator\metadata_search:/app
       - C:\Users\Administrator\.cache:/root/.cache
     command: uvicorn api.main:app --host 0.0.0.0 --port 8003 --reload
     restart: unless-stopped
