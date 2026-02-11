@@ -143,6 +143,7 @@ def search_scene_semantic(
     search_kwargs = {
         "collection_name": settings.milvus_collection_name,
         "data": query_vectors,
+        "anns_field": "embedding",
         "limit": k,
         "output_fields": SCENE_OUTPUT_FIELDS,
         "search_params": {"metric_type": "COSINE", "params": {"ef": 256}},
@@ -243,6 +244,7 @@ def search_content_semantic(
     search_kwargs = {
         "collection_name": settings.milvus_content_collection_name,
         "data": query_vectors,
+        "anns_field": "embedding",
         "limit": k,
         "output_fields": CONTENT_OUTPUT_FIELDS,
         "search_params": {"metric_type": "COSINE", "params": {"ef": 256}},
