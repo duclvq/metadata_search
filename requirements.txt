@@ -5,3 +5,5 @@ pymilvus[model]
 pydantic-settings
 pymongo
 requests
+python-multipart
+tqdm
