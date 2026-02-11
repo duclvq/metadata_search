@@ -343,6 +343,50 @@
     -webkit-box-orient: vertical;
   }
 
+  .scene-details {
+    margin: .5rem 0;
+    padding: .6rem .8rem;
+    background: var(--surface2);
+    border-radius: 8px;
+    font-size: .82rem;
+    line-height: 1.6;
+    color: var(--text2);
+  }
+
+  .scene-details .detail-label {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    margin-top: .4rem;
+    display: block;
+  }
+
+  .scene-details .detail-label:first-child { margin-top: 0; }
+
+  .scene-details .detail-value {
+    display: block;
+    color: var(--text2);
+    margin-bottom: .3rem;
+  }
+
+  .face-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    margin-top: .2rem;
+  }
+
+  .face-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: .15rem .5rem;
+    font-size: .75rem;
+    color: #c084fc;
+  }
+
   .card-meta {
     display: flex;
     flex-wrap: wrap;
@@ -785,19 +829,36 @@ function renderSceneCard(h) {
   const date = h.created_date || '';
   const scoreHtml = h.score ? `<div class="score">${h.score.toFixed(4)}</div>` : '';
 
+  const faces = h.faces || [];
+  const facesHtml = faces.length > 0
+    ? `<span class="detail-label">Khuon mat</span>
+       <div class="face-chips">${faces.map(f => `<span class="face-chip">${esc(f.name)}</span>`).join('')}</div>`
+    : '';
+
+  const detailsHtml = (h.visual_caption || h.audio_summarization || h.audio_transcription || faces.length > 0)
+    ? `<div class="scene-details">
+        ${h.visual_caption ? `<span class="detail-label">Visual Caption</span><span class="detail-value">${esc(h.visual_caption)}</span>` : ''}
+        ${h.audio_summarization ? `<span class="detail-label">Audio Summary</span><span class="detail-value">${esc(h.audio_summarization)}</span>` : ''}
+        ${h.audio_transcription ? `<span class="detail-label">Audio Transcription</span><span class="detail-value">${esc(h.audio_transcription)}</span>` : ''}
+        ${facesHtml}
+      </div>`
+    : '';
+
   return `
     <div class="scene-card">
       <div class="card-header">
         <div class="video-title">${esc(h.video_title)}</div>
         ${scoreHtml}
       </div>
-      <div class="scene-desc">${esc(h.scene_description)}</div>
+      ${detailsHtml}
       <div class="card-meta">
         <span class="meta-time">${timeRange}</span>
         ${h.category ? `<span class="meta-sep">|</span><span class="meta-category">${esc(h.category)}</span>` : ''}
         ${h.author ? `<span class="meta-sep">|</span><span class="meta-author">${esc(h.author)}</span>` : ''}
         ${date ? `<span class="meta-sep">|</span><span class="meta-date">${date}</span>` : ''}
+        ${h.broadcast_date ? `<span class="meta-sep">|</span><span class="meta-date">PT: ${h.broadcast_date}</span>` : ''}
         ${tags ? `<span class="meta-sep">|</span>${tags}` : ''}
+        ${h.program_id ? `<span class="meta-sep">|</span><span class="meta-tag">${esc(h.program_id)}</span>` : ''}
       </div>
     </div>
   `;
@@ -808,6 +869,10 @@ function renderContentCard(h) {
   const duration = h.duration_sec ? formatDuration(h.duration_sec) : '';
   const scoreHtml = h.score ? `<div class="score">${h.score.toFixed(4)}</div>` : '';
 
+  const summaryHtml = h.video_summary
+    ? `<div class="scene-details"><span class="detail-label">Video Summary</span><span class="detail-value">${esc(h.video_summary)}</span></div>`
+    : '';
+
   return `
     <div class="content-card">
       <div class="card-header">
@@ -815,12 +880,16 @@ function renderContentCard(h) {
         ${scoreHtml}
       </div>
       <div class="content-desc">${esc(h.description)}</div>
+      ${summaryHtml}
       <div class="card-meta">
         ${duration ? `<span class="meta-duration">${duration}</span>` : ''}
+        ${h.resolution ? `<span class="meta-sep">|</span><span class="meta-tag">${esc(h.resolution)}</span>` : ''}
         ${h.category ? `<span class="meta-sep">|</span><span class="meta-category">${esc(h.category)}</span>` : ''}
         ${h.author ? `<span class="meta-sep">|</span><span class="meta-author">${esc(h.author)}</span>` : ''}
         ${h.created_at ? `<span class="meta-sep">|</span><span class="meta-date">${h.created_at}</span>` : ''}
+        ${h.broadcast_date ? `<span class="meta-sep">|</span><span class="meta-date">PT: ${h.broadcast_date}</span>` : ''}
         ${tags ? `<span class="meta-sep">|</span>${tags}` : ''}
+        ${h.program_id ? `<span class="meta-sep">|</span><span class="meta-tag">${esc(h.program_id)}</span>` : ''}
       </div>
     </div>
   `;

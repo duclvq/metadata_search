@@ -59,10 +59,12 @@ def transform_mongo_doc(doc: dict) -> list[dict]:
     video_created_at = doc.get("video_created_at")
     video_tags = doc.get("video_tags", [])
 
-    # Audio full transcription as video_description fallback
-    video_description = enriched.get("audio", {}).get("metadata", {}).get("transcription", "")
-    if not video_description:
-        video_description = enriched.get("audio", {}).get("transcription", "")
+    # Audio summary as video_summary
+    video_summary = enriched.get("audio", {}).get("summary", "")
+    if not video_summary:
+        video_summary = enriched.get("audio", {}).get("metadata", {}).get("transcription", "")
+    if not video_summary:
+        video_summary = enriched.get("audio", {}).get("transcription", "")
 
     scenes = []
     for idx, scene in enumerate(scene_list):
@@ -83,18 +85,30 @@ def transform_mongo_doc(doc: dict) -> list[dict]:
         else:
             end_sec = float(end_raw)
 
+        faces = scene.get("faces", [])
+
         scenes.append({
             "scene_id": scene["scene_id"],
             "scene_description": description,
+            "visual_caption": caption,
+            "audio_summarization": audio_summary,
+            "audio_transcription": scene.get("audio_transcription", ""),
+            "faces": faces,
             "start_time_sec": start_sec,
             "end_time_sec": end_sec,
             "video": {
                 "video_id": video_id,
                 "video_title": video_title,
-                "video_description": video_description,
+                "video_name": doc.get("video_name", ""),
+                "video_summary": video_summary,
                 "video_tags": video_tags,
                 "video_duration_sec": video_duration_sec,
                 "video_created_at": video_created_at,
+                "resolution": doc.get("resolution", ""),
+                "fps": doc.get("fps"),
+                "program_id": doc.get("program_id", ""),
+                "broadcast_date": doc.get("broadcast_date", ""),
+                "content_type_id": doc.get("content_type_id", ""),
             },
             "category": scene.get("category", scene.get("video_type", "")),
             "created_date": scene.get("created_date", ""),
@@ -238,7 +252,7 @@ def _upsert_milvus(scenes: list[dict]) -> int:
             "end_time_sec": scene["end_time_sec"],
             "video_id": video["video_id"],
             "video_title": video["video_title"],
-            "video_description": video.get("video_description") or "",
+            "video_summary": video.get("video_summary") or video.get("video_description") or "",
             "video_tags": json.dumps(video.get("video_tags", [])),
             "video_duration_sec": video.get("video_duration_sec") or 0.0,
             "video_created_at": (
@@ -345,7 +359,7 @@ def _upsert_opensearch(scenes: list[dict]) -> int:
             "_id": scene["scene_id"],
             "video_id": video["video_id"],
             "video_title": video["video_title"],
-            "video_description": video.get("video_description"),
+            "video_summary": video.get("video_summary") or video.get("video_description"),
             "video_tags": video.get("video_tags", []),
             "video_duration_sec": video.get("video_duration_sec"),
             "video_created_at": (

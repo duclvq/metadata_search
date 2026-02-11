@@ -48,7 +48,7 @@ def _build_index_body() -> dict:
                     "type": "text",
                     "fields": {"keyword": {"type": "keyword"}},
                 },
-                "video_description": {"type": "text"},
+                "video_summary": {"type": "text"},
                 "video_tags": {"type": "keyword"},
                 "video_duration_sec": {"type": "float"},
                 "video_created_at": {"type": "date"},

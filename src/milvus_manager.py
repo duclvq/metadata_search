@@ -24,15 +24,25 @@ def _build_scenes_schema() -> CollectionSchema:
         FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=settings.embedding_dimension),
         # Scene-level fields
         FieldSchema(name="scene_description", dtype=DataType.VARCHAR, max_length=65535),
+        FieldSchema(name="visual_caption", dtype=DataType.VARCHAR, max_length=65535),
+        FieldSchema(name="audio_summarization", dtype=DataType.VARCHAR, max_length=65535),
+        FieldSchema(name="audio_transcription", dtype=DataType.VARCHAR, max_length=65535),
+        FieldSchema(name="faces", dtype=DataType.VARCHAR, max_length=4096),  # JSON-serialized list
         FieldSchema(name="start_time_sec", dtype=DataType.FLOAT),
         FieldSchema(name="end_time_sec", dtype=DataType.FLOAT),
         # Video-level fields (flattened)
         FieldSchema(name="video_id", dtype=DataType.VARCHAR, max_length=256),
         FieldSchema(name="video_title", dtype=DataType.VARCHAR, max_length=1024),
-        FieldSchema(name="video_description", dtype=DataType.VARCHAR, max_length=65535),
+        FieldSchema(name="video_name", dtype=DataType.VARCHAR, max_length=1024),
+        FieldSchema(name="video_summary", dtype=DataType.VARCHAR, max_length=65535),
         FieldSchema(name="video_tags", dtype=DataType.VARCHAR, max_length=4096),  # JSON-serialized list
         FieldSchema(name="video_duration_sec", dtype=DataType.FLOAT),
         FieldSchema(name="video_created_at", dtype=DataType.VARCHAR, max_length=64),
+        FieldSchema(name="resolution", dtype=DataType.VARCHAR, max_length=64),
+        FieldSchema(name="fps", dtype=DataType.FLOAT),
+        FieldSchema(name="program_id", dtype=DataType.VARCHAR, max_length=256),
+        FieldSchema(name="broadcast_date", dtype=DataType.VARCHAR, max_length=64),
+        FieldSchema(name="content_type_id", dtype=DataType.VARCHAR, max_length=256),
         # Scene metadata fields
         FieldSchema(name="category", dtype=DataType.VARCHAR, max_length=256),
         FieldSchema(name="created_date", dtype=DataType.VARCHAR, max_length=64),
@@ -64,11 +74,18 @@ def _build_contents_schema() -> CollectionSchema:
         # Content-level fields
         FieldSchema(name="title", dtype=DataType.VARCHAR, max_length=1024),
         FieldSchema(name="description", dtype=DataType.VARCHAR, max_length=65535),
+        FieldSchema(name="video_summary", dtype=DataType.VARCHAR, max_length=65535),
         FieldSchema(name="tags", dtype=DataType.VARCHAR, max_length=4096),  # JSON-serialized list
         FieldSchema(name="duration_sec", dtype=DataType.FLOAT),
         FieldSchema(name="created_at", dtype=DataType.VARCHAR, max_length=64),
         FieldSchema(name="category", dtype=DataType.VARCHAR, max_length=256),
         FieldSchema(name="author", dtype=DataType.VARCHAR, max_length=256),
+        FieldSchema(name="video_name", dtype=DataType.VARCHAR, max_length=1024),
+        FieldSchema(name="resolution", dtype=DataType.VARCHAR, max_length=64),
+        FieldSchema(name="fps", dtype=DataType.FLOAT),
+        FieldSchema(name="program_id", dtype=DataType.VARCHAR, max_length=256),
+        FieldSchema(name="broadcast_date", dtype=DataType.VARCHAR, max_length=64),
+        FieldSchema(name="content_type_id", dtype=DataType.VARCHAR, max_length=256),
         # BM25 full-text search
         FieldSchema(
             name="bm25_text",
@@ -148,11 +165,11 @@ def ensure_collection(client: MilvusClient) -> None:
         client,
         settings.milvus_collection_name,
         _build_scenes_schema,
-        {"scene_id", "category", "created_date", "author", "bm25_text", "sparse_embedding"},
+        {"scene_id", "visual_caption", "audio_summarization", "audio_transcription", "faces", "category", "created_date", "author", "bm25_text", "sparse_embedding"},
     )
     _ensure_single_collection(
         client,
         settings.milvus_content_collection_name,
         _build_contents_schema,
-        {"content_id", "title", "description", "bm25_text", "sparse_embedding"},
+        {"content_id", "title", "description", "video_summary", "program_id", "bm25_text", "sparse_embedding"},
     )

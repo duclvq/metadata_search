@@ -29,7 +29,7 @@ def build_hybrid_query(query_text: str, k: int) -> dict:
                             "should": [
                                 {"match": {"scene_description": {"query": query_text}}},
                                 {"match": {"video_title": {"query": query_text, "boost": 1.5}}},
-                                {"match": {"video_description": {"query": query_text, "boost": 0.5}}},
+                                {"match": {"video_summary": {"query": query_text, "boost": 0.5}}},
                             ]
                         }
                     },

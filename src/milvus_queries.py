@@ -12,14 +12,24 @@ from src.config import settings
 SCENE_OUTPUT_FIELDS = [
     "scene_id",
     "scene_description",
+    "visual_caption",
+    "audio_summarization",
+    "audio_transcription",
+    "faces",
     "start_time_sec",
     "end_time_sec",
     "video_id",
     "video_title",
-    "video_description",
+    "video_name",
+    "video_summary",
     "video_tags",
     "video_duration_sec",
     "video_created_at",
+    "resolution",
+    "fps",
+    "program_id",
+    "broadcast_date",
+    "content_type_id",
     "category",
     "created_date",
     "author",
@@ -37,16 +47,35 @@ def _parse_scene_hit(result: dict) -> dict:
         except (json.JSONDecodeError, TypeError):
             tags = []
 
+    faces = entity.get("faces", "[]")
+    if isinstance(faces, str):
+        try:
+            faces = json.loads(faces)
+        except (json.JSONDecodeError, TypeError):
+            faces = []
+
     return {
         "score": result["distance"],
         "scene_id": entity.get("scene_id", ""),
         "scene_description": entity.get("scene_description", ""),
+        "visual_caption": entity.get("visual_caption", ""),
+        "audio_summarization": entity.get("audio_summarization", ""),
+        "audio_transcription": entity.get("audio_transcription", ""),
+        "faces": faces,
         "start_time_sec": entity.get("start_time_sec", 0.0),
         "end_time_sec": entity.get("end_time_sec", 0.0),
         "video_id": entity.get("video_id", ""),
         "video_title": entity.get("video_title", ""),
-        "video_description": entity.get("video_description"),
+        "video_name": entity.get("video_name", ""),
+        "video_summary": entity.get("video_summary", ""),
         "video_tags": tags,
+        "video_duration_sec": entity.get("video_duration_sec", 0.0),
+        "video_created_at": entity.get("video_created_at", ""),
+        "resolution": entity.get("resolution", ""),
+        "fps": entity.get("fps", 0.0),
+        "program_id": entity.get("program_id", ""),
+        "broadcast_date": entity.get("broadcast_date", ""),
+        "content_type_id": entity.get("content_type_id", ""),
         "category": entity.get("category", ""),
         "created_date": entity.get("created_date", ""),
         "author": entity.get("author", ""),
@@ -78,11 +107,18 @@ CONTENT_OUTPUT_FIELDS = [
     "content_id",
     "title",
     "description",
+    "video_summary",
     "tags",
     "duration_sec",
     "created_at",
     "category",
     "author",
+    "video_name",
+    "resolution",
+    "fps",
+    "program_id",
+    "broadcast_date",
+    "content_type_id",
 ]
 
 CONTENT_FACET_FIELDS = ["category", "author"]
@@ -102,11 +138,18 @@ def _parse_content_hit(result: dict) -> dict:
         "content_id": entity.get("content_id", ""),
         "title": entity.get("title", ""),
         "description": entity.get("description", ""),
+        "video_summary": entity.get("video_summary", ""),
         "tags": tags,
         "duration_sec": entity.get("duration_sec", 0.0),
         "created_at": entity.get("created_at", ""),
         "category": entity.get("category", ""),
         "author": entity.get("author", ""),
+        "video_name": entity.get("video_name", ""),
+        "resolution": entity.get("resolution", ""),
+        "fps": entity.get("fps", 0.0),
+        "program_id": entity.get("program_id", ""),
+        "broadcast_date": entity.get("broadcast_date", ""),
+        "content_type_id": entity.get("content_type_id", ""),
     }
 
 

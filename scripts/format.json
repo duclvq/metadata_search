@@ -1,0 +1,37 @@
+{
+  "video_info": {
+    "video_id": "unique-video-uuid",
+    "video_title": "Tieu de video",
+    "video_name": "video.mp4",
+    "video_summary": "Tom tat video",
+    "video_tags": ["tag1", "tag2"],
+    "video_duration_sec": 100,
+    "video_created_at": "2026-01-01T08:00:00",
+    "resolution": "1920x1080",
+    "fps": 30,
+    "category": "thoi su",
+    "author": "Nguyen Van A",
+    "created_date": "2026-01-01",
+    "program_id": "1234567890",
+    "broadcast_date": "2026-01-01",
+    "content_type_id": "1234567890"
+  },
+  "scene_info": {
+    "scene_id": "unique-scene-uuid",
+    "scene_description": "Visual caption + audio summary (combined for search)",
+    "visual_caption": "Mo ta hinh anh phan canh bang tieng Viet",
+    "audio_summarization": "Tom tat audio phan canh bang tieng Viet",
+    "audio_transcription": "Transcription cua phan canh bang tieng Viet",
+    "faces": [
+      {
+        "face_id": "unique-face-uuid",
+        "name": "Nguyen Van A"
+      }
+    ],
+    "start_time_sec": 0.0,
+    "end_time_sec": 100.0,
+    "category": "thoi su",
+    "created_date": "2026-01-01",
+    "author": "Nguyen Van A"
+  }
+}

@@ -20,17 +20,36 @@ def _parse_opensearch_hits(raw_hits: list[dict]) -> list[SceneHit]:
     results = []
     for hit in raw_hits:
         src = hit["_source"]
+        faces = src.get("faces", [])
+        if isinstance(faces, str):
+            import json as _json
+            try:
+                faces = _json.loads(faces)
+            except Exception:
+                faces = []
         results.append(
             SceneHit(
                 score=hit.get("_score", 0.0),
                 scene_id=src["scene_id"],
                 scene_description=src["scene_description"],
+                visual_caption=src.get("visual_caption", ""),
+                audio_summarization=src.get("audio_summarization", ""),
+                audio_transcription=src.get("audio_transcription", ""),
+                faces=faces,
                 start_time_sec=src["start_time_sec"],
                 end_time_sec=src["end_time_sec"],
                 video_id=src["video_id"],
                 video_title=src["video_title"],
-                video_description=src.get("video_description"),
+                video_name=src.get("video_name", ""),
+                video_summary=src.get("video_summary", ""),
                 video_tags=src.get("video_tags", []),
+                video_duration_sec=src.get("video_duration_sec", 0.0),
+                video_created_at=src.get("video_created_at", ""),
+                resolution=src.get("resolution", ""),
+                fps=src.get("fps", 0.0),
+                program_id=src.get("program_id", ""),
+                broadcast_date=src.get("broadcast_date", ""),
+                content_type_id=src.get("content_type_id", ""),
                 category=src.get("category", ""),
                 created_date=src.get("created_date", ""),
                 author=src.get("author", ""),
@@ -290,6 +309,13 @@ def list_scenes(
             except Exception:
                 tags = []
         r["video_tags"] = tags
+        faces = r.get("faces", "[]")
+        if isinstance(faces, str):
+            try:
+                faces = json.loads(faces)
+            except Exception:
+                faces = []
+        r["faces"] = faces
         items.append(r)
 
     return {"total": len(items), "items": items}
