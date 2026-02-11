@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   search-api:
-    build: .
+
     container_name: search-api
     ports:
       - "8003:8003"
