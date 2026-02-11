@@ -622,8 +622,8 @@ async function doList() {
 }
 
 async function doFilterSearch() {
-  const filteredIds = getFilteredIds();
-  if (!filteredIds || filteredIds.length === 0) return;
+  const keys = Object.keys(activeFilters);
+  if (keys.length === 0) return;
 
   const k = parseInt($('#topK').value) || 10;
   const searchType = $('#searchType').value || 'semantic';
@@ -634,9 +634,12 @@ async function doFilterSearch() {
 
   try {
     const endpoint = `${API_BASE}/v1/search/${currentMode}/filter`;
-    const body = currentMode === 'scene'
-      ? { query_text: lastQuery, scene_ids: filteredIds, k: k, search_type: searchType }
-      : { query_text: lastQuery, content_ids: filteredIds, k: k, search_type: searchType };
+    const body = { query_text: lastQuery, k: k, search_type: searchType };
+
+    // Build field-based filter params
+    for (const key of keys) {
+      body[key] = [activeFilters[key].value];
+    }
 
     const resp = await fetch(endpoint, {
       method: 'POST',
@@ -658,26 +661,13 @@ async function doFilterSearch() {
   }
 }
 
-function getFilteredIds() {
-  const keys = Object.keys(activeFilters);
-  if (keys.length === 0) return null;
-
-  let result = null;
-  for (const key of keys) {
-    const ids = new Set(activeFilters[key].ids);
-    if (result === null) {
-      result = ids;
-    } else {
-      result = new Set([...result].filter(id => ids.has(id)));
-    }
-  }
-  return result ? [...result] : [];
-}
-
 const FACET_LABELS = {
   category: 'Danh muc',
   created_date: 'Ngay tao',
   author: 'Tac gia',
+  broadcast_date: 'Ngay phat song',
+  program_id: 'Chuong trinh',
+  content_type_id: 'Loai noi dung',
 };
 
 function renderFacets() {
@@ -687,8 +677,8 @@ function renderFacets() {
   if (!allFacets) { panel.style.display = 'none'; return; }
 
   const facetKeys = currentMode === 'scene'
-    ? ['category', 'created_date', 'author']
-    : ['category', 'author'];
+    ? ['category', 'created_date', 'author', 'broadcast_date', 'program_id', 'content_type_id']
+    : ['category', 'author', 'broadcast_date', 'program_id', 'content_type_id'];
   const hasFacets = facetKeys.some(k => allFacets[k] && allFacets[k].length > 0);
 
   if (!hasFacets) { panel.style.display = 'none'; return; }
@@ -859,6 +849,7 @@ function renderSceneCard(h) {
         ${h.broadcast_date ? `<span class="meta-sep">|</span><span class="meta-date">PT: ${h.broadcast_date}</span>` : ''}
         ${tags ? `<span class="meta-sep">|</span>${tags}` : ''}
         ${h.program_id ? `<span class="meta-sep">|</span><span class="meta-tag">${esc(h.program_id)}</span>` : ''}
+        ${h.content_type_id ? `<span class="meta-sep">|</span><span class="meta-tag">${esc(h.content_type_id)}</span>` : ''}
       </div>
     </div>
   `;
@@ -890,6 +881,7 @@ function renderContentCard(h) {
         ${h.broadcast_date ? `<span class="meta-sep">|</span><span class="meta-date">PT: ${h.broadcast_date}</span>` : ''}
         ${tags ? `<span class="meta-sep">|</span>${tags}` : ''}
         ${h.program_id ? `<span class="meta-sep">|</span><span class="meta-tag">${esc(h.program_id)}</span>` : ''}
+        ${h.content_type_id ? `<span class="meta-sep">|</span><span class="meta-tag">${esc(h.content_type_id)}</span>` : ''}
       </div>
     </div>
   `;

@@ -38,7 +38,7 @@ def _parse_opensearch_hits(raw_hits: list[dict]) -> list[SceneHit]:
                 faces=faces,
                 start_time_sec=src["start_time_sec"],
                 end_time_sec=src["end_time_sec"],
-                video_id=src["video_id"],
+                content_id=src["video_id"],
                 video_title=src["video_title"],
                 video_name=src.get("video_name", ""),
                 video_summary=src.get("video_summary", ""),
@@ -97,6 +97,28 @@ def _opensearch_hybrid(query_text: str, k: int) -> SearchResponse:
 
 
 # ---- Milvus scene helpers ----
+
+def _escape_filter_value(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def _build_filter_expr(field_values: dict[str, list[str] | None]) -> str | None:
+    conditions: list[str] = []
+    for field, values in field_values.items():
+        if not values:
+            continue
+        clean_values = [v for v in values if v]
+        if not clean_values:
+            continue
+        if len(clean_values) == 1:
+            val = _escape_filter_value(clean_values[0])
+            conditions.append(f'{field} == "{val}"')
+        else:
+            quoted = ", ".join(f'"{_escape_filter_value(v)}"' for v in clean_values)
+            conditions.append(f"{field} in [{quoted}]")
+    if not conditions:
+        return None
+    return " and ".join(conditions)
 
 def _milvus_scene_semantic(query_text: str, k: int, filter_expr: str | None = None) -> SearchResponse:
     from src.milvus_client import get_embedding_fn, get_milvus_client
@@ -234,7 +256,12 @@ def content_search(
 
 class SceneFilterRequest(BaseModel):
     query_text: str = Field(..., min_length=1)
-    scene_ids: list[str] = Field(..., min_length=1)
+    category: list[str] | None = None
+    author: list[str] | None = None
+    created_date: list[str] | None = None
+    broadcast_date: list[str] | None = None
+    program_id: list[str] | None = None
+    content_type_id: list[str] | None = None
     k: int = Field(default=10, ge=1, le=100)
     search_type: str = Field(default="semantic", pattern="^(semantic|fulltext|hybrid)$")
 
@@ -243,8 +270,16 @@ class SceneFilterRequest(BaseModel):
 def scene_filter_search(req: SceneFilterRequest):
     if settings.backend != "milvus":
         raise HTTPException(status_code=501, detail="Filter API only supports Milvus backend")
-    ids_str = ", ".join(f'"{sid}"' for sid in req.scene_ids)
-    filter_expr = f"scene_id in [{ids_str}]"
+    filter_expr = _build_filter_expr(
+        {
+            "category": req.category,
+            "author": req.author,
+            "created_date": req.created_date,
+            "broadcast_date": req.broadcast_date,
+            "program_id": req.program_id,
+            "content_type_id": req.content_type_id,
+        }
+    )
 
     if req.search_type == "hybrid":
         return _milvus_scene_hybrid(req.query_text, req.k, filter_expr)
@@ -257,7 +292,11 @@ def scene_filter_search(req: SceneFilterRequest):
 
 class ContentFilterRequest(BaseModel):
     query_text: str = Field(..., min_length=1)
-    content_ids: list[str] = Field(..., min_length=1)
+    category: list[str] | None = None
+    author: list[str] | None = None
+    broadcast_date: list[str] | None = None
+    program_id: list[str] | None = None
+    content_type_id: list[str] | None = None
     k: int = Field(default=10, ge=1, le=100)
     search_type: str = Field(default="semantic", pattern="^(semantic|fulltext|hybrid)$")
 
@@ -266,8 +305,15 @@ class ContentFilterRequest(BaseModel):
 def content_filter_search(req: ContentFilterRequest):
     if settings.backend != "milvus":
         raise HTTPException(status_code=501, detail="Filter API only supports Milvus backend")
-    ids_str = ", ".join(f'"{cid}"' for cid in req.content_ids)
-    filter_expr = f"content_id in [{ids_str}]"
+    filter_expr = _build_filter_expr(
+        {
+            "category": req.category,
+            "author": req.author,
+            "broadcast_date": req.broadcast_date,
+            "program_id": req.program_id,
+            "content_type_id": req.content_type_id,
+        }
+    )
 
     if req.search_type == "hybrid":
         return _milvus_content_hybrid(req.query_text, req.k, filter_expr)
@@ -309,6 +355,8 @@ def list_scenes(
             except Exception:
                 tags = []
         r["video_tags"] = tags
+        if "video_id" in r:
+            r["content_id"] = r.pop("video_id")
         faces = r.get("faces", "[]")
         if isinstance(faces, str):
             try:

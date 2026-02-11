@@ -35,7 +35,7 @@ SCENE_OUTPUT_FIELDS = [
     "author",
 ]
 
-SCENE_FACET_FIELDS = ["category", "created_date", "author"]
+SCENE_FACET_FIELDS = ["category", "created_date", "author", "broadcast_date", "program_id", "content_type_id"]
 
 
 def _parse_scene_hit(result: dict) -> dict:
@@ -64,7 +64,7 @@ def _parse_scene_hit(result: dict) -> dict:
         "faces": faces,
         "start_time_sec": entity.get("start_time_sec", 0.0),
         "end_time_sec": entity.get("end_time_sec", 0.0),
-        "video_id": entity.get("video_id", ""),
+        "content_id": entity.get("video_id", ""),
         "video_title": entity.get("video_title", ""),
         "video_name": entity.get("video_name", ""),
         "video_summary": entity.get("video_summary", ""),
@@ -121,7 +121,7 @@ CONTENT_OUTPUT_FIELDS = [
     "content_type_id",
 ]
 
-CONTENT_FACET_FIELDS = ["category", "author"]
+CONTENT_FACET_FIELDS = ["category", "author", "broadcast_date", "program_id", "content_type_id"]
 
 
 def _parse_content_hit(result: dict) -> dict:

@@ -16,7 +16,7 @@ class SceneHit(BaseModel):
     faces: list[FaceItem] = []
     start_time_sec: float
     end_time_sec: float
-    video_id: str
+    content_id: str
     video_title: str
     video_name: str = ""
     video_summary: str = ""
@@ -43,6 +43,9 @@ class Facets(BaseModel):
     category: list[FacetItem] = []
     created_date: list[FacetItem] = []
     author: list[FacetItem] = []
+    broadcast_date: list[FacetItem] = []
+    program_id: list[FacetItem] = []
+    content_type_id: list[FacetItem] = []
 
 
 class SearchResponse(BaseModel):
@@ -83,6 +86,9 @@ class ContentFacetItem(BaseModel):
 class ContentFacets(BaseModel):
     category: list[ContentFacetItem] = []
     author: list[ContentFacetItem] = []
+    broadcast_date: list[ContentFacetItem] = []
+    program_id: list[ContentFacetItem] = []
+    content_type_id: list[ContentFacetItem] = []
 
 
 class ContentSearchResponse(BaseModel):
