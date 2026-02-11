@@ -19,6 +19,6 @@ dependencies:
       - tokenizers==0.22.2
       - safetensors==0.7.0
       - huggingface-hub>=1.4
-      - torch==2.8.0
-      - torchaudio==0.25.0
+      - torch
+      - torchaudio
       - python-multipart
